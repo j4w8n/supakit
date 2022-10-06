@@ -1,9 +1,13 @@
 import type { User } from '@supabase/supabase-js';
 
 export type Config = {
-  cookieOptions?: import('cookie').CookieSerializeOptions;
-  sessionStore?: boolean;
-  cookieRoute?: RequestInfo | URL;
+  supakit: {
+		sessionStore: boolean;
+    cookie: {
+      options: import('cookie').CookieSerializeOptions;
+      route: RequestInfo | URL;
+    }
+	}
 }
 
 export type Session = 

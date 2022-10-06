@@ -2,35 +2,28 @@ import { error } from '@sveltejs/kit'
 import { setContext, getContext } from 'svelte'
 import { writable } from 'svelte/store'
 import { supabaseClient, createSupabaseServerClient } from './db'
-import { merge } from './utils'
-
+import { config } from '$supakit/config'
+console.log('config', config)
 const keys = { session: Symbol() }
 const cookieList = ['sb-user','sb-access-token','sb-provider-token','sb-refresh-token']
 
-/** 
- * @type {import('./index').Config}
- */
-let config = {
-  cookieOptions: { maxAge: 7200 },
-  sessionStore: false,
-  cookieRoute: '/api/supakit'
-}
-
-/** 
- * @param {import('./index').Config} config_options
- */
-export const setupSupakit = (config_options) => {
-  config = merge(config, config_options)
-  if (config.sessionStore) {
+export const initSession = () => {
+  if (config.supakit.sessionStore) {
     return setContext(keys.session, { 
       /** @type {import('svelte/store').Writable<import('@supabase/supabase-js').User>} */
       session: writable() 
     })
+  } else {
+    throw new Error('To use initSession(), set supakit.sessionStore to true in supakit.config.js')
   }
 }
 
 export const getSession = () => {
-  return getContext(keys.session)
+  if (config.supakit.sessionStore) {
+    return getContext(keys.session)
+  } else {
+    throw new Error('To use getSession(), set supakit.sessionStore to true in supakit.config.js')
+  }
 }
 
 /**
@@ -48,7 +41,7 @@ export const startSupabase = (store, callback) => {
      */
     const setCookie = async (method, body = null) => {
       try {
-        await fetch(config.cookieRoute || '', {
+        await fetch(config.supakit.cookie.route || '', {
           method,
           body
         })
@@ -76,10 +69,10 @@ export const startSupabase = (store, callback) => {
 export const setCookies = async ({ cookies, request }) => {
   const session = request.body ? await request.json() : null
   if (session) {
-    cookies.set('sb-user', JSON.stringify(session.user), config.cookieOptions)
-    cookies.set('sb-access-token', JSON.stringify(session.access_token), config.cookieOptions)
-    cookies.set('sb-provider-token', JSON.stringify(session.provider_token), config.cookieOptions)
-    cookies.set('sb-refresh-token', JSON.stringify(session.refresh_token), config.cookieOptions)
+    cookies.set('sb-user', JSON.stringify(session.user), config.supakit.cookie.options)
+    cookies.set('sb-access-token', JSON.stringify(session.access_token), config.supakit.cookie.options)
+    cookies.set('sb-provider-token', JSON.stringify(session.provider_token), config.supakit.cookie.options)
+    cookies.set('sb-refresh-token', JSON.stringify(session.refresh_token), config.supakit.cookie.options)
     return new Response (null)
   } else {
     return new Response('Expecting JSON body, but body was null.', { status: 400 })
@@ -91,7 +84,7 @@ export const setCookies = async ({ cookies, request }) => {
  * @param {import('@sveltejs/kit').RequestEvent} event
  */
 export const deleteCookies = ({ cookies }) => {
-  cookieList.forEach(cookie => cookies.delete(cookie, config.cookieOptions))
+  cookieList.forEach(cookie => cookies.delete(cookie, config.supakit.cookie.options))
   return new Response (null, { status: 204 })
 }
 
