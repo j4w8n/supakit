@@ -27,9 +27,14 @@ export const getSession = () => {
 }
 
 /**
- * 
- * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store 
- * @param {(event: string) => void} callback
+ * @typedef {Object} StateChangeReturn
+ * @property {string} event - A supabase event
+ * @property {import('@supabase/supabase-js').Session | null} session - A supabase session
+ */
+
+/**
+ * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
+ * @param {(StateChangeReturn: object) => void} callback
  */
 export const startSupabase = (store, callback) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -58,7 +63,7 @@ export const startSupabase = (store, callback) => {
       if (store) store.set(session?.user || null)
     }
 
-    callback(event)
+    callback({event, session})
   })
 }
 
