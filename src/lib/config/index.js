@@ -1,19 +1,18 @@
 import fs from 'fs'
 import path from 'path'
 import * as url from 'url'
-import defaults from './options.js'
+import defaults from './defaults.js'
 
 /**
  * 
- * @param {*} param0
  * @returns {Promise<import('../types').Config>}
  */
-export default async function config({ cwd = process.cwd() } = {}) {
-  const config_file = path.join(cwd, 'supakit.config.js')
+export const supakitConfig =  async () => {
+  const config_file = path.join(process.cwd(), 'supakit.config.js')
 
   if (!fs.existsSync(config_file)) return defaults
 
-  const user_config = await eval(`import(${JSON.stringify(url.pathToFileURL(config_file))})`)
+  const user_config = await import(url.pathToFileURL(config_file).href)
 
   if (typeof user_config.default !== 'object') throw new Error('supakit.config.js must be an object')
 

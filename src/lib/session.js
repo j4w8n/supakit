@@ -3,7 +3,7 @@ import { setContext, getContext } from 'svelte'
 import { writable } from 'svelte/store'
 import { supabaseClient, createSupabaseServerClient } from './db'
 import { config } from '$supakit/config'
-console.log('config', config)
+
 const keys = { session: Symbol() }
 const cookieList = ['sb-user','sb-access-token','sb-provider-token','sb-refresh-token']
 
