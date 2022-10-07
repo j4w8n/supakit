@@ -51,11 +51,11 @@ export const startSupabase = (store, callback) => {
     }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
-      store.set(null)
+      if (store) store.set(null)
     }
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
       await setCookie('POST', JSON.stringify(session))
-      store.set(session?.user || null)
+      if (store) store.set(session?.user || null)
     }
 
     callback(event)
