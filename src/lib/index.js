@@ -1,2 +1,4 @@
-export { supabaseClient, supabaseServerClient, createSupabaseServerClient } from './db'
-export { getSession, initSession, setSessionLocals, setCookies, deleteCookies, startSupabase } from './session'
+export { locals } from './server/locals'
+export { cookies } from './server/cookies'
+export { supabaseClient, supabaseServerClient, createSupabaseServerClient } from './clients'
+export { getSession, initSession, auth } from './session'

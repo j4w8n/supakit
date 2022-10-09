@@ -1,8 +1,8 @@
 /**
  * 
- * @param {{[key: string]: any}} current 
- * @param {{[key: string]: any}} updates 
- * @returns {import('./index').Config}
+ * @param {import('./types').Config} current 
+ * @param {import('./types').Config} updates 
+ * @returns {import('./types').Config}
  */
 export const merge = (current, updates) => {
   if (current) {

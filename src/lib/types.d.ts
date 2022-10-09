@@ -1,11 +1,12 @@
 import type { User } from '@supabase/supabase-js';
 
 export type Config = {
+  [key: string]: any
   supakit: {
-		sessionStore: boolean;
-    cookie: {
-      options: import('cookie').CookieSerializeOptions;
-      route: RequestInfo | URL;
+		sessionStore?: boolean;
+    cookie?: {
+      options?: import('cookie').CookieSerializeOptions;
+      route?: RequestInfo | URL;
     }
 	}
 }

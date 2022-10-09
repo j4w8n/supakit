@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import * as url from 'url'
 import defaults from './defaults.js'
+import { merge } from '../utils.js'
 
 /**
  * 
@@ -20,5 +21,5 @@ export const supakitConfig =  async () => {
    * TODO: validate config before returning
    */
 
-  return { ...defaults, ...user_config.default }
+  return merge(defaults, user_config.default)
 }

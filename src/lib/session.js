@@ -1,11 +1,10 @@
 import { error } from '@sveltejs/kit'
 import { setContext, getContext } from 'svelte'
 import { writable } from 'svelte/store'
-import { supabaseClient, createSupabaseServerClient } from './db'
+import { supabaseClient } from './clients'
 import { config } from '$supakit/config'
 
 const keys = { session: Symbol() }
-const cookieList = ['sb-user','sb-access-token','sb-provider-token','sb-refresh-token']
 
 export const initSession = () => {
   if (config.supakit.sessionStore) {
@@ -36,7 +35,7 @@ export const getSession = () => {
  * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
  * @param {(StateChangeReturn: object) => void} callback
  */
-export const startSupabase = (store, callback) => {
+export const auth = (store, callback) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (event === 'TOKEN_REFRESHED') console.log('refreshed!', session)
     /**
@@ -67,55 +66,55 @@ export const startSupabase = (store, callback) => {
   })
 }
 
-/**
- * 
- * @param {import('@sveltejs/kit').RequestEvent} event
- */
-export const setCookies = async ({ cookies, request }) => {
-  const session = request.body ? await request.json() : null
-  if (session) {
-    cookies.set('sb-user', JSON.stringify(session.user), config.supakit.cookie.options)
-    cookies.set('sb-access-token', JSON.stringify(session.access_token), config.supakit.cookie.options)
-    cookies.set('sb-provider-token', JSON.stringify(session.provider_token), config.supakit.cookie.options)
-    cookies.set('sb-refresh-token', JSON.stringify(session.refresh_token), config.supakit.cookie.options)
-    return new Response (null)
-  } else {
-    return new Response('Expecting JSON body, but body was null.', { status: 400 })
-  }
-}
+// /**
+//  * 
+//  * @param {import('@sveltejs/kit').RequestEvent} event
+//  */
+// export const setCookies = async ({ cookies, request }) => {
+//   const session = request.body ? await request.json() : null
+//   if (session) {
+//     cookies.set('sb-user', JSON.stringify(session.user), config.supakit.cookie.options)
+//     cookies.set('sb-access-token', JSON.stringify(session.access_token), config.supakit.cookie.options)
+//     cookies.set('sb-provider-token', JSON.stringify(session.provider_token), config.supakit.cookie.options)
+//     cookies.set('sb-refresh-token', JSON.stringify(session.refresh_token), config.supakit.cookie.options)
+//     return new Response (null)
+//   } else {
+//     return new Response('Expecting JSON body, but body was null.', { status: 400 })
+//   }
+// }
 
-/**
- * 
- * @param {import('@sveltejs/kit').RequestEvent} event
- */
-export const deleteCookies = ({ cookies }) => {
-  cookieList.forEach(cookie => cookies.delete(cookie, config.supakit.cookie.options))
-  return new Response (null, { status: 204 })
-}
+// /**
+//  * 
+//  * @param {import('@sveltejs/kit').RequestEvent} event
+//  */
+// export const deleteCookies = ({ cookies }) => {
+//   cookieList.forEach(cookie => cookies.delete(cookie, config.supakit.cookie.options))
+//   return new Response (null, { status: 204 })
+// }
 
-/**
- * 
- * @type {import('@sveltejs/kit').Handle} 
- */
-export const setSessionLocals = async ({ event, resolve }) => {  
-  /** 
-   * @type {{[key: string]: any}}
-   */
-  let cookies = {}
+// /**
+//  * 
+//  * @type {import('@sveltejs/kit').Handle} 
+//  */
+//  export const locals = async ({ event, resolve }) => {  
+//   /** 
+//    * @type {{[key: string]: any}}
+//    */
+//   let cookies = {}
 
-  cookieList.forEach(cookie => {
-    cookies[cookie] = event.cookies.get(cookie) ? JSON.parse(event.cookies.get(cookie) || '') : null
-  })
+//   cookieList.forEach(cookie => {
+//     cookies[cookie] = event.cookies.get(cookie) ? JSON.parse(event.cookies.get(cookie) || '') : null
+//   })
 
-  if (cookies['sb-access-token']) createSupabaseServerClient(cookies['sb-access-token'])
+//   if (cookies['sb-access-token']) createSupabaseServerClient(cookies['sb-access-token'])
  
-  event.locals.session = {
-    user: cookies['sb-user'],
-    access_token: cookies['sb-access-token'],
-    provider_token: cookies['sb-provider-token'],
-    refresh_token: cookies['sb-refresh-token']
-  }
+//   event.locals.session = {
+//     user: cookies['sb-user'],
+//     access_token: cookies['sb-access-token'],
+//     provider_token: cookies['sb-provider-token'],
+//     refresh_token: cookies['sb-refresh-token']
+//   }
 
-  const response = await resolve(event)
-  return response
-}
+//   const response = await resolve(event)
+//   return response
+// }
