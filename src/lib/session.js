@@ -9,7 +9,7 @@ const keys = { session: Symbol() }
 export const initSession = () => {
   if (config.supakit.sessionStore) {
     return setContext(keys.session, { 
-      /** @type {import('svelte/store').Writable<import('@supabase/supabase-js').User>} */
+      /** @type {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} */
       session: writable() 
     })
   } else {
@@ -33,9 +33,9 @@ export const getSession = () => {
 
 /**
  * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
- * @param {(StateChangeReturn: object) => void} callback
+ * @param {(StateChangeReturn: object) => void | null} callback
  */
-export const auth = (store, callback) => {
+export const onAuthStateChange = (store, callback) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     /**
      * 
