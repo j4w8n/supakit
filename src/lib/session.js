@@ -37,8 +37,6 @@ export const getSession = () => {
  */
 export const auth = (store, callback) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    console.log('event', event)
-    if (event === 'TOKEN_REFRESHED') console.log('refreshed!', session)
     /**
      * 
      * @param {string} method 

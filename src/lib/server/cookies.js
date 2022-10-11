@@ -35,9 +35,9 @@ export const cookies = async ({ event, resolve }) => {
   } else if (event.request.method === 'PUT') {
     if (session) {
       const refreshCookies = Object.entries({
-        'sb-user': session?.user,
-        'sb-access-token': session?.access_token,
-        'sb-refresh-token': session?.refresh_token
+        'sb-user': session.user,
+        'sb-access-token': session.access_token,
+        'sb-refresh-token': session.refresh_token
       })
       const response = new Response(null)
       refreshCookies.forEach(([name, value]) => {
