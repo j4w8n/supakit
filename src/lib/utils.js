@@ -14,3 +14,13 @@ export const merge = (current, updates) => {
   }
   return updates
 }
+
+/**
+ * 
+ * @param {string} token 
+ */
+export const decode = (token) => {
+  const jwt = token.split('.')[1]
+  const buffer = Buffer.from(jwt, 'base64')
+  return JSON.parse(buffer.toString())
+}

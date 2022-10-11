@@ -1,5 +1,3 @@
-import { createSupabaseServerClient } from '../clients'
-
 /**
  * 
  * @type {import('@sveltejs/kit').Handle} 
@@ -14,8 +12,6 @@ export const locals = async ({ event, resolve }) => {
   for (let i = 0; i < cookieList.length; i++) {
     cookies[cookieList[i]] = event.cookies.get(cookieList[i]) ? JSON.parse(event.cookies.get(cookieList[i]) || '') : null
   }
-
-  if (cookies['sb-access-token']) createSupabaseServerClient(cookies['sb-access-token'])
 
   event.locals.session = {
     user: cookies['sb-user'],
