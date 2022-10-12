@@ -11,7 +11,7 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.25.0",
-		"@supabase/supabase-js": "2.0.0-rc.10",
+		"@supabase/supabase-js": "2.0.0",
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/kit": "next",
 		"@sveltejs/package": "next",

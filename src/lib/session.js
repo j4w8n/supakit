@@ -52,17 +52,13 @@ export const onAuthStateChange = (store, callback) => {
         throw error(500, err)
       }
     }
-    if (event === 'SIGNED_OUT') {
-      await setCookie('DELETE')
-      if (store) store.set(null)
-    }
     if (event === 'SIGNED_IN') {
       await setCookie('POST', JSON.stringify(session))
       if (store) store.set(session?.user || null)
     }
-    if (event === 'TOKEN_REFRESHED') {
-      await setCookie('PUT', JSON.stringify(session))
-      if (store) store.set(session?.user || null)
+    if (event === 'SIGNED_OUT') {
+      await setCookie('DELETE')
+      if (store) store.set(null)
     }
 
     callback({event, session})
