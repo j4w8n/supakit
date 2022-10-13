@@ -13,7 +13,7 @@ export const supabaseClient = createClient(env.PUBLIC_SUPABASE_URL || '', env.PU
 export let supabaseServerClient
 
 /** @param {string} access_token */
-export const createSupabaseServerClient = (access_token) => {
+export const initSupabaseServerClient = (access_token) => {
   supabaseServerClient = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
       headers: { 'Authorization': `Bearer ${access_token}` }

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '../client/clients'
+import { initSupabaseServerClient } from '../client/clients'
 
 /**
  * 
@@ -8,7 +8,7 @@ export const client = async ({ event, resolve }) => {
   const token = event.locals.session.access_token
 
   if (token) {
-    createSupabaseServerClient(token)
+    initSupabaseServerClient(token)
   }
   
   return await resolve(event)
