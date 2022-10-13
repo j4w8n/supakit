@@ -1,6 +1,6 @@
 {
 	"name": "supakit",
-	"version": "0.0.1",
+	"version": "1.0.0",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "svelte-kit sync && svelte-package",
@@ -28,6 +28,19 @@
 	"exports": {
 		"./vite": {
 			"import": "./exports/vite/index.js"
+		},
+		".": {
+			"types": "./types.d.ts"
 		}
-	}
+	},
+	"types": "./types.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/j4w8n/supakit.git"
+	},
+	"bugs": {
+		"url": "https://github.com/j4w8n/supakit/issues"
+	},
+	"homepage": "https://github.com/j4w8n/supakit#readme",
+	"license": "MIT"
 }
