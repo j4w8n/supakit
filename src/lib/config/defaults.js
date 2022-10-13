@@ -3,7 +3,7 @@ const defaults = {
 		sessionStore: false,
     cookie: {
       options: {
-        maxAge: 7200
+        maxAge: 14400
       },
       route: '/api/supakit'
     }

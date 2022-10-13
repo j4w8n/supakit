@@ -1,4 +1,4 @@
-import { supakitConfig } from '../../config/index.js'
+import { config } from '../../config/index.js'
 
 /** @return {import('vite').Plugin} */
 export function supakit() {
@@ -14,8 +14,8 @@ export function supakit() {
     /** @param {string} id */
     async load(id) {
 			if (id === '\0$supakit/config') {
-        const config = await supakitConfig()
-        return `export const config = ${JSON.stringify(config)}`
+        const supakitConfig = await config()
+        return `export const config = ${JSON.stringify(supakitConfig)}`
       }
 		}
   }

@@ -1,4 +1,4 @@
-import { createSupabaseServerClient, supabaseClient } from '../clients'
+import { createSupabaseServerClient } from '../client/clients'
 
 /**
  * 
