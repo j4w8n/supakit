@@ -11,13 +11,4 @@ export type Config = {
 	}
 }
 
-export type Session = 
-  | {
-    user?: User;
-    access_token?: string;
-    provider_token?: string;
-    refresh_token?: string;
-  }
-  | null
-
 export type StateChangeReturn = ({event: string, session: Session}) => void
