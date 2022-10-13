@@ -20,6 +20,4 @@ export type Session =
   }
   | null
 
-export type StateChangeReturn = {
-  ({event: string, session: Session})
-}
+export type StateChangeReturn = ({event: string, session: Session}) => void
