@@ -44,11 +44,11 @@ You can override the defaults by creating a `supakit.config.js` file in the root
 Enable the Supakit plugin in `vite.config.js`. Note this is imported from `supakit/vite`, not `supakit`.
 
 ```js
-import { sveltekit } from '@sveltejs/kit/vite';
+import { sveltekit } from '@sveltejs/kit/vite'
 import { supakit } from 'supakit/vite'
 
 const config = {
-	plugins: [sveltekit(), supakit()]
+  plugins: [sveltekit(), supakit()]
 };
 
 export default config;
@@ -97,7 +97,8 @@ Usage examples:
 
   $session = $page.data.session
 </script>
-
+```
+```js
 /* +page.svelte */
 <script>
   import { getStore } from 'supakit'
