@@ -2,12 +2,6 @@ import { error } from '@sveltejs/kit'
 import { supabaseClient } from './clients'
 import { config } from '$supakit/config'
 
-// /**
-//  * @typedef {Object} StateChangeReturn
-//  * @property {string} event - A supabase event
-//  * @property {import('@supabase/supabase-js').Session | null} session
-//  */
-
 /**
  * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
  * @param {import('../types').StateChangeReturn} callback

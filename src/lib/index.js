@@ -1,6 +1,7 @@
 export { locals } from './server/locals'
 export { cookies } from './server/cookies'
 export { client } from './server/client'
+export { auth } from './server/auth'
 export { supabaseClient, supabaseServerClient, createSupabaseServerClient } from './client/clients'
 export { state } from './client/state'
 export { getStore, initStore, } from './client/store'
