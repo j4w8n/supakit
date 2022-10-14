@@ -47,7 +47,7 @@ export const cookies = async ({ event, resolve }) => {
     }
   }
 
-  /* Check if sb-access-token cookie has expired. If so, refresh. */
+  /* Check if sb-access-token jwt is expiring soon or has expired. If so, refresh. */
   const cookies = getCookies(event)
   const access_token = cookies['sb-access-token']
 
@@ -55,10 +55,10 @@ export const cookies = async ({ event, resolve }) => {
     const jwt = decode(access_token)
     const expires = jwt.exp - (Date.now() / 1000)
 
-    if (expires < 1) {
+    if (expires < 120) {
       const refresh_token = cookies['sb-refresh-token']
       try {
-        const { data, error: err } = await supabaseClient.auth.setSession({ access_token, refresh_token })
+        const { data, error: err } = await supabaseClient.auth.setSession({ access_token: "", refresh_token })
         if (err) throw error(500, err)
         if (data.session) {
           const refreshCookies = Object.entries({
