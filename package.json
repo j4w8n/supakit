@@ -29,8 +29,8 @@
 		"./vite": {
 			"import": "./exports/vite/index.js"
 		},
-		".": {
-			"types": "./types.d.ts"
+		"./types": {
+			"import": "./types.d.ts"
 		}
 	},
 	"types": "./types.d.ts",
