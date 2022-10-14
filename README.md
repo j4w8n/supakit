@@ -2,7 +2,7 @@
 
 A Supabase auth helper for SvelteKit (in beta)
 
-Supakit is meant to be as modular as possible. Meaning you can use the whole thing or whatever parts you'd like.
+Supakit is meant to be as modular as possible. Meaning you can use the whole thing or whatever parts you'd like. There are some exceptions.
 
 ## Configuration
 
@@ -112,6 +112,8 @@ Usage examples:
 
 ### state
 
+This module depends on the `clients` module.
+
 Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a route, which is configurable, when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store (typed for Supabase's User type) or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
 
 Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is returned from Supabase's `onAuthStateChange()`.
@@ -139,7 +141,9 @@ You can import and call these modules individually, in `hooks.server.js`, or use
 
 ### cookies
 
-Sets and refreshes browser cookies. Information comes from the Supabase `session`.
+This module depends on the `clients` module.
+
+Sets and refreshes browser cookies. Information comes from the Supabase `session`. On every server request, Supakit will attempt to refresh Supabase cookies if the jwt expires in less than 120 seconds; or has already expired. Note the refresh process does not renew the provider token. This means you should keep your cookie `maxAge` at 120 seconds or longer. By default, Supakit sets `maxAge` to 14400 seconds (4 hours).
 
 - `sb-user`
 - `sb-access-token`
@@ -152,7 +156,9 @@ Sets `event.locals.session` with the `sb-user` cookie value.
 
 ### client
 
-Authorizes `supabaseServerClient` with the `sb-access-token` cookie value. This module can only be used if you're using the client-side `clients` module, since that's where this client is defined.
+This module depends on the `clients` module.
+
+Authorizes `supabaseServerClient` with the `sb-access-token` cookie value.
 
 ### auth
 
