@@ -30,10 +30,10 @@
 			"import": "./exports/vite/index.js"
 		},
 		"./types": {
-			"import": "./types.d.ts"
+			"import": "./types/index.d.ts"
 		}
 	},
-	"types": "./types.d.ts",
+	"types": "./types/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"
