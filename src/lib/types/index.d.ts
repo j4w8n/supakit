@@ -11,4 +11,4 @@ export type Config = {
 	}
 }
 
-export type StateChangeReturn = ({event: string, session: Session}) => void
+export type StateChangeCallback = ({event: string, session: Session}) => void

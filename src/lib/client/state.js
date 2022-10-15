@@ -3,8 +3,8 @@ import { supabaseClient } from './clients'
 import { config } from '$supakit/config'
 
 /**
- * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
- * @param {import('../types').StateChangeReturn} callback
+ * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null> | null} store
+ * @param {import('../types').StateChangeCallback} callback
  */
 export const state = (store, callback = () => {}) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -25,7 +25,7 @@ export const state = (store, callback = () => {}) => {
     }
     if (event === 'SIGNED_IN') {
       await setCookie('POST', JSON.stringify(session))
-      if (store) store.set(session?.user || null)
+      if (store && session) store.set(session.user)
     }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
