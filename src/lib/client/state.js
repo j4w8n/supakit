@@ -6,7 +6,7 @@ import { config } from '$supakit/config'
  * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} store
  * @param {import('../types').StateChangeReturn} callback
  */
-export const state = (store, callback) => {
+export const state = (store, callback = () => {}) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     /**
      * 
