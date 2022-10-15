@@ -22,7 +22,7 @@ supakit: {
 You can override the defaults by creating a `supakit.config.js` file in the root of your project.
 
 - `supakit > cookie > options` takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
-- `supakit > cookie > route` is the where our `state` module sends a post-auth Supabase session to, for setting and expiring cookies. Our `cookies` module handles setting and expiring cookies for you; but if you'd like to set a different route and/or handle cookies yourself, you can set the path here.
+- `supakit > cookie > route` is where our `state` module sends a post-auth Supabase session, for setting and expiring cookies. Our `cookies` module handles setting and expiring cookies for you; but if you'd like to set a different route and/or handle cookies yourself, you can set the path here.
 
 ## Caveats
 
