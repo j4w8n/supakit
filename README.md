@@ -28,7 +28,7 @@ You can override the defaults by creating a `supakit.config.js` file in the root
 
 - I've only done local tests with the GitHub OAuth login.
 - You need to provide your own signIn and signOut functions.
-- The `clients` module uses `$env/dynamic/public` (in case you'd prefer to use `$env/static/public` in your own client/db code)
+- The `clients` module uses `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static.
 
 ## Install
 
