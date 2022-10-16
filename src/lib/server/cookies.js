@@ -9,6 +9,7 @@ import { error } from '@sveltejs/kit'
  */
 export const cookies = async ({ event, resolve }) => {
   const cookieRoute = config.supakit.cookie.route
+
   if (event.url.pathname === cookieRoute) {
     /* Handle request to the configured cookie route - /api/supakit by default */
 
@@ -16,14 +17,12 @@ export const cookies = async ({ event, resolve }) => {
      * @type {import('@supabase/supabase-js').Session | null}
      */
     const session = event.request.body ? await event.request.json() : null
+    const cookieOptions = config.supakit.cookie.options
     const cookiesToSet = Object.entries({
       'sb-user': session?.user,
       'sb-access-token': session?.access_token,
-      'sb-provider-refresh-token': session?.provider_refresh_token,
-      'sb-provider-token': session?.provider_token,
       'sb-refresh-token': session?.refresh_token
     })
-    const cookieOptions = config.supakit.cookie.options
 
     if (event.request.method === 'POST') {
       if (session) {

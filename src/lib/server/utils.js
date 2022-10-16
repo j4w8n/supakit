@@ -14,7 +14,7 @@
  * @returns {{[key: string]: string}}
  */
 export const getCookies = (event) => {
-  const cookieList = ['sb-user','sb-access-token','sb-provider-refresh-token','sb-provider-token','sb-refresh-token']
+  const cookieList = ['sb-user','sb-access-token','sb-refresh-token']
   /** 
    * @type {{[key: string]: string}}
    */
