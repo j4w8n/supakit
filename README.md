@@ -54,7 +54,9 @@ const config = {
 export default config;
 ```
 
-Then import and use the below modules, inside the appropriate project files.
+Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values.
+
+After setting up the plugin and `.env` file, simply use the below modules.
 
 ## Client-side Modules
 
@@ -62,7 +64,9 @@ Then import and use the below modules, inside the appropriate project files.
 
 > You need to use this module if you intend to use the `state`, `cookies`, or `client` modules.
 
-This sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`. The `supabaseClient` has the `autoRefreshToken` and `persistSession` options set to `false`.
+Essentially, you "use" this module by importing Supakit's two Supabase clients in your code. See examples further below.
+
+Sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`. The `supabaseClient` has the `autoRefreshToken` and `persistSession` options set to `false`.
 
 - `supabaseClient` for client-side supabase work.
 - `supabaseServerClient` for server-side supabase work.
@@ -85,7 +89,7 @@ Usage examples:
 
 ### store
 
-This manages a secure session store, and exports `initStore()` and `getStore()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store, post-login/logout, with the returned Supabase `session.user` info or `null`.
+Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `initStore()` and `getStore()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store, post-login/logout, with the returned Supabase `session.user` info or `null`.
 
 Only call `initStore()` once - usually in a layout file. You can destructure the session store for immediate use. To use the session store elsewhere, destructure it using `getStore()`.
 
@@ -118,9 +122,11 @@ Usage examples:
 
 This module depends on the `clients` module.
 
-Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a route, which is configurable, when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store (typed for Supabase's User type) or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
+Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" route, which is configurable, when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store (typed for Supabase's User type) or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
 
-Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is returned from Supabase's `onAuthStateChange()`.
+When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
+
+Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
 
 ```js
 <script>
