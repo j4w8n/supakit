@@ -20,8 +20,8 @@ export const getCookies = (event) => {
    */
   let cookies = {}
 
-  for (let i = 0; i < cookieList.length; i++) {
-    cookies[cookieList[i]] = event.cookies.get(cookieList[i]) ? JSON.parse(event.cookies.get(cookieList[i]) || '') : null
-  }
+  cookieList.forEach(name => {
+    cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null
+  })
   return cookies
 }

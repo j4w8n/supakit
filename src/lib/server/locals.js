@@ -10,7 +10,6 @@ export const locals = async ({ event, resolve }) => {
   event.locals.session = {
     user: cookies['sb-user'],
     access_token: cookies['sb-access-token'],
-    provider_token: cookies['sb-provider-token'],
     refresh_token: cookies['sb-refresh-token']
   }
 
