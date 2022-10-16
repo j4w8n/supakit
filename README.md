@@ -54,9 +54,13 @@ const config = {
 export default config;
 ```
 
+Then import and use the below modules, inside the appropriate project files.
+
 ## Client-side Modules
 
 ### clients
+
+> You need to use this module if you intend to use the `state`, `cookies`, or `client` modules.
 
 This sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`. The `supabaseClient` has the `autoRefreshToken` and `persistSession` options set to `false`.
 
@@ -143,16 +147,17 @@ You can import and call these modules individually, in `hooks.server.js`, or use
 
 This module depends on the `clients` module.
 
-Sets and refreshes browser cookies. Information comes from the Supabase `session`. On every server request, Supakit will attempt to refresh Supabase cookies if the jwt expires in less than 120 seconds; or has already expired. Note the refresh process does not renew the provider token. This means you should keep your cookie `maxAge` at 120 seconds or longer. By default, Supakit sets `maxAge` to 14400 seconds (4 hours).
+Sets and refreshes browser cookies. Information comes from the Supabase `session`. On every server request, Supakit will attempt to refresh Supabase cookies if the jwt expires in less than 120 seconds; or has already expired. This means you should keep your cookie `maxAge` at 120 seconds or longer. By default, Supakit sets `maxAge` to 14400 seconds (4 hours).
+
+Supakit will set these three cookies:
 
 - `sb-user`
 - `sb-access-token`
-- `sb-provider-token`
 - `sb-refresh-token`
 
 ### locals
 
-Sets `event.locals.session` with the `sb-user` cookie value.
+Sets `event.locals.session` equal to the `sb-user` cookie value.
 
 ### client
 
