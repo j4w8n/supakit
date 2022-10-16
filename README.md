@@ -172,17 +172,20 @@ Convenienence method for calling the above three. Order is `cookies, locals, cli
 Usage examples:
 
 ```js
+/* hooks.server.js */
 import { auth } from 'supakit'
 
 export const handle = auth
 ```
 ```js
+/* hooks.server.js */
 import { sequence } from '@sveltejs/kit/hooks'
 import { auth } from 'supakit'
 
 export const handle = sequence(auth, yourHandler)
 ```
 ```js
+/* hooks.server.js */
 import { sequence } from '@sveltejs/kit/hooks'
 import { cookies, locals } from 'supakit'
 
