@@ -19,6 +19,7 @@ export const cookies = async ({ event, resolve }) => {
     const cookiesToSet = Object.entries({
       'sb-user': session?.user,
       'sb-access-token': session?.access_token,
+      'sb-provider-refresh-token': session?.provider_refresh_token,
       'sb-provider-token': session?.provider_token,
       'sb-refresh-token': session?.refresh_token
     })
