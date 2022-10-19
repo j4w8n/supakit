@@ -3,8 +3,8 @@ import { supabaseClient } from './clients'
 import { config } from '$supakit/config'
 
 /**
- * @param {import('svelte/store').Writable<import('@supabase/supabase-js').User | null> | null} store
- * @param {import('../types').StateChangeCallback} callback
+ * 
+ * @type {import('../types').StateChange}
  */
 export const state = (store, callback = () => {}) => {
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -32,6 +32,10 @@ export const state = (store, callback = () => {}) => {
       if (store) store.set(null)
     }
 
+    /**
+     * 
+     * @type {import('../types').StateChangeCallback}
+     */
     callback({event, session})
   })
 }
