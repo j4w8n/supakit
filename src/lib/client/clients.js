@@ -17,6 +17,10 @@ export const initSupabaseServerClient = (access_token) => {
   supabaseServerClient = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
       headers: { 'Authorization': `Bearer ${access_token}` }
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
   })
 }
