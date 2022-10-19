@@ -9,20 +9,19 @@ import { error } from '@sveltejs/kit'
  */
 export const cookies = async ({ event, resolve }) => {
   const cookieRoute = config.supakit.cookie.route
+  const cookieOptions = config.supakit.cookie.options
+  /**
+   * @type {import('@supabase/supabase-js').Session | null}
+   */
+  const session = event.request.body ? await event.request.json() : null
+  const cookiesToSet = Object.entries({
+    'sb-user': session?.user,
+    'sb-access-token': session?.access_token,
+    'sb-refresh-token': session?.refresh_token
+  })
 
   if (event.url.pathname === cookieRoute) {
     /* Handle request to the configured cookie route - /api/supakit by default */
-
-    /**
-     * @type {import('@supabase/supabase-js').Session | null}
-     */
-    const session = event.request.body ? await event.request.json() : null
-    const cookieOptions = config.supakit.cookie.options
-    const cookiesToSet = Object.entries({
-      'sb-user': session?.user,
-      'sb-access-token': session?.access_token,
-      'sb-refresh-token': session?.refresh_token
-    })
 
     if (event.request.method === 'POST') {
       if (session) {
@@ -59,7 +58,22 @@ export const cookies = async ({ event, resolve }) => {
       const refresh_token = cookies['sb-refresh-token']
       try {
         const { data, error: err } = await supabaseClient.auth.setSession({ access_token: "", refresh_token })
-        if (err) throw error(500, err)
+        if (err) {
+          if (err.message === 'Invalid Refresh Token') {
+            /* Delete cookies, therefore logging out the user */
+            const response = new Response(null, { status: 204 })
+            const expireOptions = {
+              ...cookieOptions,
+              maxAge: -1
+            }
+            cookiesToSet.forEach(([name]) => {
+              response.headers.append('set-cookie', event.cookies.serialize(name, '', expireOptions))
+            })
+            return response
+          }
+          
+          throw error(500, err)
+        }
         if (data.session) {
           const refreshCookies = Object.entries({
             'sb-user': data.session.user,
