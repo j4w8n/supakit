@@ -138,6 +138,7 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
 
   $session = $page.data.session
 
+  /** @type {import('supakit/types').StateChange} */
   state(session, ({ event, session }) => {
     if (event === 'SIGNED_IN') goto('/app')
     if (event === 'SIGNED_OUT') goto('/')
