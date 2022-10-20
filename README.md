@@ -89,9 +89,7 @@ Usage examples:
 
 ### store
 
-Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `initStore()` and `getStore()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store, post-login/logout, with the returned Supabase `session.user` info or `null`.
-
-Only call `initStore()` once - usually in a layout file. You can destructure the session store for immediate use. To use the session store elsewhere, destructure it using `getStore()`.
+Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `getSession()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store, post-login, with the returned Supabase `session.user` info (or `null` if logged out).
 
 Usage examples:
 
@@ -99,9 +97,9 @@ Usage examples:
 /* +layout.svelte */
 <script>
   import { page } from '$app/stores'
-  import { initStore } from 'supakit'
+  import { getSession } from 'supakit'
 
-  const { session } = initStore()
+  const { session } = getSession()
 
   $session = $page.data.session
 </script>
@@ -109,8 +107,8 @@ Usage examples:
 ```js
 /* +page.svelte */
 <script>
-  import { getStore } from 'supakit'
-  const { session } = getStore()
+  import { getSession } from 'supakit'
+  const { session } = getSession()
 </script>
 
 {#if $session}
@@ -132,9 +130,9 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
 <script>
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
-  import { initStore, state } from 'supakit'
+  import { getSession, state } from 'supakit'
 
-  const { session } = initStore()
+  const { session } = getSession()
 
   $session = $page.data.session
 
