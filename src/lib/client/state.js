@@ -1,12 +1,16 @@
 import { error } from '@sveltejs/kit'
 import { supabaseClient } from './clients'
 import { config } from '$supakit/config'
+import { goto } from '$app/navigation'
 
 /**
  * 
  * @type {import('../types').StateChange}
  */
-export const state = (store, callback = () => {}) => {
+export const state = (store, callback) => {
+  const loginRedirect = config.supakit.redirects.login
+  const logoutRedirect = config.supakit.redirects.logout
+
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     /**
      * 
@@ -26,16 +30,18 @@ export const state = (store, callback = () => {}) => {
     if (event === 'SIGNED_IN') {
       await setCookie('POST', JSON.stringify(session))
       if (store && session) store.set(session.user)
+      if (loginRedirect) goto(loginRedirect)
     }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
       if (store) store.set(null)
+      if (logoutRedirect) goto(logoutRedirect)
     }
 
     /**
      * 
      * @type {import('../types').StateChangeCallback}
      */
-    callback({event, session})
+    if (callback) callback({event, session})
   })
 }

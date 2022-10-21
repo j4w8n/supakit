@@ -12,6 +12,6 @@ export type Config = {
 	}
 }
 
-export type StateChangeCallback = ({event, session}: {event: string, session: Session | null}) => void
+export type StateChangeCallback = ({event, session}: {event: string, session: Session | null}) => void | null
 
 export type StateChange = (store: Writable<User | null>, callback: StateChangeCallback) => void

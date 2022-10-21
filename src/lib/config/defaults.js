@@ -5,6 +5,10 @@ const defaults = {
         maxAge: 14400
       },
       route: '/api/supakit'
+    },
+    redirects: {
+      login: '',
+      logout: ''
     }
 	}
 }
