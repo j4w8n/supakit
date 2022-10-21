@@ -7,7 +7,7 @@ import { goto } from '$app/navigation'
  * 
  * @type {import('../types').StateChange}
  */
-export const state = (store, callback) => {
+export const state = (store = null, callback = null) => {
   const loginRedirect = config.supakit.redirects.login
   const logoutRedirect = config.supakit.redirects.logout
 
