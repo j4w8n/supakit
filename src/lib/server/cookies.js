@@ -57,7 +57,7 @@ export const cookies = async ({ event, resolve }) => {
     if (expires < 120) {
       const refresh_token = cookies['sb-refresh-token']
       try {
-        const { data, error: err } = await supabaseClient.auth.setSession({ access_token: "", refresh_token })
+        const { data, error: err } = await supabaseClient.auth.refreshSession({ refresh_token })
         if (err) {
           if (err.message === 'Invalid Refresh Token') {
             /* Delete cookies, therefore logging out the user */
