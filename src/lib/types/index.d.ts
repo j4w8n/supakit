@@ -9,6 +9,10 @@ export type Config = {
       options?: import('cookie').CookieSerializeOptions;
       route?: RequestInfo | URL;
     }
+    redirects?: {
+      login?: RequestInfo | URL;
+      logout?: RequestInfo | URL;
+    }
 	}
 }
 
