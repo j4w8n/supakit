@@ -93,6 +93,8 @@ import { supabaseServerClient } from 'supakit'
 const { data, error } = await supabaseServerClient.from('table').select('column')
 ```
 
+> Supabase user info in will be available in `locals.session.user` on the server-side.
+
 ## Client-side Modules
 
 ### clients
