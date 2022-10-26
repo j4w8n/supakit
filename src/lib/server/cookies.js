@@ -57,6 +57,7 @@ export const cookies = async ({ event, resolve }) => {
     if (expires < 120) {
       const refresh_token = cookies['sb-refresh-token']
       try {
+        /* Uses the client-side client, to ensure it's session is synced with refreshed cookies */
         const { data, error: err } = await supabaseClient.auth.refreshSession({ refresh_token })
         if (err) {
           if (err.message === 'Invalid Refresh Token') {
