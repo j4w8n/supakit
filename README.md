@@ -165,9 +165,18 @@ Supakit will set these three cookies:
 - `sb-access-token`
 - `sb-refresh-token`
 
+> In the process of refreshing the cookies, Supakit will update the client-side Supabase client with the new session. This keeps the client's session up-to-date for db queries, and using method's like `getSession()` and `getUser()`.
+
 ### locals
 
-Sets `event.locals.session` equal to the `sb-user` cookie value.
+Sets the following. Note the values will always exist; it's a matter of if there's an actual value or just `null`.
+```js
+event.locals.session = {
+  user: cookies['sb-user'],
+  access_token: cookies['sb-access-token'],
+  refresh_token: cookies['sb-refresh-token']
+}
+```
 
 ### client
 
@@ -200,4 +209,71 @@ import { sequence } from '@sveltejs/kit/hooks'
 import { cookies, locals } from 'supakit'
 
 export const handle = sequence(cookies, locals, yourHandler)
+```
+
+## Protecting Page Routes
+
+Sometimes you want a user to be logged in, in order to access certain pages.
+
+Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.js` file. However, this isn't required unless you need shared data across pages under the group.
+```
+src/routes/
+├ (auth)/
+│ ├ admin/
+│ │ ├ +page.server.js
+│ │ └ +page.svelte
+│ ├ app/
+│ │ ├ +page.server.js
+│ │ └ +page.svelte
+│ ├ +layout.server.js
+│ └ +layout.svelte
+├ login/
+│ └ +page.svelte
+├ +error.svelte
+├ +layout.server.js
+├ +layout.svelte
+└ +page.svelte
+```
+
+### During Layout Server Requests
+
+When using a `+layout.server.js` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. It's only initialized as a Supabase client if the `sb-access-token` cookie is present in the browser.
+
+```js
+/* src/routes/(auth)/+layout.server.js */
+import { redirect } from '@sveltejs/kit';
+import { supabaseServerClient } from 'supakit';
+
+/**
+ * 
+ * @type {import('./$types').LayoutServerLoad}
+ */
+export const load = async ({ locals }) => {
+  if (!locals.session.user) throw redirect(307, '/login')
+
+  /* grab info to return */
+  let { data, error } = await supabaseServerClient.from('table').select('column')
+
+  return {
+    stuff: data.stuff
+  }
+}
+```
+
+### During Client-side Navigation
+
+Protect pages using a `+page.server.js` file for each page route. This is needed because `+layout.server.js` will not necessarily run on every request. This method works for both client-side and server-side requests, because it causes `handle()` to be called in `hooks.server.js` for `{route}/__data.json`.
+
+To be clear, the server is called in this process; therefore we have opted out of true client-side navigation. However, this does not cause the page to be server re-rendered; as SvelteKit is only calling the server to re-run the page `load()` function.
+
+```js
+import { redirect } from '@sveltejs/kit';
+
+/**
+ * 
+ * @type {import('./$types').PageServerLoad}
+ */
+export const load = async ({ locals }) => {
+  if (!locals.session.user) throw redirect(307, '/login')
+}
 ```
