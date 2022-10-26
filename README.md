@@ -159,7 +159,7 @@ Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" r
 
 When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
-If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration). Keep in mind that if you set one or both of the redirect configs, the callback function won't fire whenever the events are triggered. So if you need the callback function, call `goto()` yourself; as shown in the example below.
+If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration). Keep in mind that if you set one or both of the redirect configs, we can't guarantee that all of your code, in the callback function, will fire when the events are triggered. So if you need the callback function and redirects, it may be safer to call `goto()` yourself; as shown in the example below.
 
 Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
 
