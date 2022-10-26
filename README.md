@@ -61,7 +61,37 @@ export default config;
 
 Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values.
 
-After setting up the plugin and `.env` file, simply use the below modules.
+## Bare Minimum
+
+After setup, the following code will get you going. For more reading and options, checkout out the modules further below.
+
+```js
+/* hooks.server.js */
+import { auth } from 'supakit'
+
+export const handle = auth
+```
+```html
+<!-- +layout.svelte -->
+<script>
+  import { supabaseClient, state } from 'supakit'
+
+  /** @type {import('supakit/types').StateChange} */
+  state(null, ({ event, session }) => {
+    /* some post login and/or logout code */
+  })
+
+  /* use the supabase client */
+  const { data, error } = await supabaseClient.from('table').select('column')
+</script>
+```
+```js
+/* server-side */
+import { supabaseServerClient } from 'supakit'
+
+/* use the supabase client */
+const { data, error } = await supabaseServerClient.from('table').select('column')
+```
 
 ## Client-side Modules
 
@@ -79,17 +109,15 @@ Sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are
 
 Usage examples:
 
-```js
-/* +page.svelte */
+```html
+<!-- +page.svelte -->
 <script>
   import { supabaseClient } from 'supakit'
 </script>
 ```
 ```js
 /* +layout.server.js */
-<script>
-  import { supabaseServerClient } from 'supakit'
-</script>
+import { supabaseServerClient } from 'supakit'
 ```
 
 ### store
@@ -98,8 +126,8 @@ Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#
 
 Usage examples:
 
-```js
-/* +layout.svelte */
+```html
+<!-- +layout.svelte -->
 <script>
   import { page } from '$app/stores'
   import { getSession } from 'supakit'
@@ -109,8 +137,8 @@ Usage examples:
   $session = $page.data.session
 </script>
 ```
-```js
-/* +page.svelte */
+```svelte
+<!-- +page.svelte -->
 <script>
   import { getSession } from 'supakit'
   const { session } = getSession()
@@ -129,9 +157,11 @@ Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" r
 
 When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
+If you've configured redirects, this module will execute them with `goto()`. See [configuration](##Configuration). Keep in mind that if you set one or both of the redirect configs, the callback function won't fire whenever the events are triggered. So if you need the callback function, call `goto()` yourself; as shown in the example below.
+
 Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
 
-```js
+```html
 <script>
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
@@ -143,6 +173,9 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
 
   /** @type {import('supakit/types').StateChange} */
   state(session, ({ event, session }) => {
+    /* some post login and/or logout code */
+
+    /* then redirect */
     if (event === 'SIGNED_IN') goto('/app')
     if (event === 'SIGNED_OUT') goto('/')
   })
@@ -216,7 +249,7 @@ export const handle = sequence(cookies, locals, yourHandler)
 Sometimes you want a user to be logged in, in order to access certain pages.
 
 Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.js` file. However, this isn't required unless you need shared data across pages under the group.
-```
+```shell
 src/routes/
 ├ (auth)/
 │ ├ admin/
@@ -237,7 +270,7 @@ src/routes/
 
 ### During Layout Server Requests
 
-When using a `+layout.server.js` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. It's only initialized as a Supabase client if the `sb-access-token` cookie is present in the browser.
+When using a `+layout.server.js` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. It's only initialized as a Supabase client if the `sb-access-token` cookie has a non-`null` value.
 
 ```js
 /* src/routes/(auth)/+layout.server.js */
