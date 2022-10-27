@@ -37,6 +37,10 @@ export const state = (store = null, callback = null) => {
       if (store) store.set(null)
       if (logoutRedirect) goto(logoutRedirect)
     }
+    if (event === 'TOKEN_REFRESHED') {
+      await setCookie('POST', JSON.stringify(session))
+      if (store && session) store.set(session.user)
+    }
 
     /**
      * 

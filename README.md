@@ -77,9 +77,7 @@ export const handle = auth
   import { supabaseClient, state } from 'supakit'
 
   /** @type {import('supakit/types').StateChange} */
-  state(null, ({ event, session }) => {
-    /* some post login and/or logout code */
-  })
+  state()
 
   /* use the supabase client */
   const { data, error } = await supabaseClient.from('table').select('column')
@@ -103,7 +101,7 @@ const { data, error } = await supabaseServerClient.from('table').select('column'
 
 Essentially, you "use" this module by importing Supakit's two Supabase clients in your code. See examples further below.
 
-Sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`. The `supabaseClient` has the `autoRefreshToken` and `persistSession` options set to `false`.
+Sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`.
 
 - `supabaseClient` for client-side supabase work.
 - `supabaseServerClient` for server-side supabase work.
@@ -159,7 +157,7 @@ Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" r
 
 When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
-If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration). Keep in mind that if you set one or both of the redirect configs, we can't guarantee that all of your code, in the callback function, will fire when the events are triggered. So if you need the callback function and redirects, it may be safer to call `goto()` yourself; as shown in the example below.
+If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration).
 
 Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
 
@@ -183,6 +181,21 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
   })
 </script>
 ```
+```html
+<script>
+  import { goto } from '$app/navigation'
+  import { state } from 'supakit'
+
+  /** @type {import('supakit/types').StateChange} */
+  state(null, ({ event, session }) => {
+    /* some post login and/or logout code */
+
+    /* then redirect */
+    if (event === 'SIGNED_IN') goto('/app')
+    if (event === 'SIGNED_OUT') goto('/')
+  })
+</script>
+```
 
 ## Server-side Modules
 
@@ -192,15 +205,13 @@ You can import and call these modules individually, in `hooks.server.js`, or use
 
 This module depends on the `clients` module.
 
-Sets and refreshes browser cookies. Information comes from the Supabase `session`. On every server request, Supakit will attempt to refresh Supabase cookies if the jwt expires in less than 120 seconds; or has already expired. This means you should keep your cookie `maxAge` at 120 seconds or longer. By default, Supakit sets `maxAge` to 14400 seconds (4 hours).
+Sets the browser cookies on login and logout, from the Supabase `session`.
 
 Supakit will set these three cookies:
 
 - `sb-user`
 - `sb-access-token`
 - `sb-refresh-token`
-
-> In the process of refreshing the cookies, Supakit will update the client-side Supabase client with the new session. This keeps the client's session up-to-date for db queries, and using method's like `getSession()` and `getUser()`.
 
 ### locals
 

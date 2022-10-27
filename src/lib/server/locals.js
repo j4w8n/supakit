@@ -1,11 +1,17 @@
-import { getCookies } from './utils'
-
 /**
  * 
  * @type {import('@sveltejs/kit').Handle} 
  */
 export const locals = async ({ event, resolve }) => {
-  const cookies = getCookies(event)
+  const cookieList = ['sb-user','sb-access-token','sb-refresh-token']
+  /** 
+   * @type {{[key: string]: string}}
+   */
+  let cookies = {}
+
+  cookieList.forEach(name => {
+    cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null
+  })
 
   event.locals.session = {
     user: cookies['sb-user'],
