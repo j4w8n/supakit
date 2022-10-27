@@ -10,7 +10,7 @@ const defaults = {
       login: '',
       logout: ''
     }
-	}
+  }
 }
 
 export default defaults
