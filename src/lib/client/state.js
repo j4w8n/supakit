@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit'
-import { supabaseClient } from './clients'
+import { supabaseClient } from './client'
 import { config } from '$supakit/config'
 import { goto } from '$app/navigation'
 
