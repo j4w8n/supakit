@@ -2,8 +2,6 @@
 
 A Supabase auth helper for SvelteKit (in beta)
 
-Supakit is meant to be as modular as possible. Meaning you can use the whole thing or whatever parts you'd like. There are some exceptions.
-
 ## Configuration
 
 Here is the default config:
@@ -33,7 +31,7 @@ You can override the defaults by creating a `supakit.config.js` file in the root
 
 - I've only done local tests with the GitHub OAuth login.
 - You need to provide your own signIn and signOut functions.
-- The `clients` module uses `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static.
+- The `client` modules uses `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static.
 
 ## Install
 
@@ -59,7 +57,7 @@ const config = {
 export default config;
 ```
 
-Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values.
+Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ## Bare Minimum
 
@@ -91,23 +89,17 @@ import { supabaseServerClient } from 'supakit'
 const { data, error } = await supabaseServerClient.from('table').select('column')
 ```
 
-> Supabase user info will be available in `locals.session.user` on the server-side.
+> Supabase user info will be available in `locals.session.user` on the server-side, and `$page.data.session` on the client-side.
 
 ## Client-side Modules
 
-### clients
+### client
 
-> You need to use this module if you intend to use the `state`, `cookies`, or `client` modules.
+Essentially, you "use" this module by importing Supakit's Supabase client in your code. See example further below.
 
-Essentially, you "use" this module by importing Supakit's two Supabase clients in your code. See examples further below.
+Sets up the Supabase client-side client. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`.
 
-Sets up the Supabase clients and exports them. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`.
-
-- `supabaseClient` for client-side supabase work.
-- `supabaseServerClient` for server-side supabase work.
-- `initSupabaseServerClient()`, which takes in a Supabase access_token to authorize the server client. This function is automatically invoked in the Supakit server `client` module; but available for you to use in custom code if desired.
-
-Usage examples:
+Usage example:
 
 ```html
 <!-- +page.svelte -->
@@ -115,14 +107,10 @@ Usage examples:
   import { supabaseClient } from 'supakit'
 </script>
 ```
-```js
-/* +layout.server.js */
-import { supabaseServerClient } from 'supakit'
-```
 
 ### store
 
-Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `getSession()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store, post-login, with the returned Supabase `session.user` info (or `null` if logged out).
+Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `getSession()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store with the returned Supabase `session.user` info (or `null` if logged out).
 
 Usage examples:
 
@@ -151,9 +139,7 @@ Usage examples:
 
 ### state
 
-This module depends on the `clients` module.
-
-Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" route, which is configurable, when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store (typed for Supabase's User type) or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
+Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" route when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
 
 When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
@@ -203,11 +189,9 @@ You can import and call these modules individually, in `hooks.server.js`, or use
 
 ### cookies
 
-This module depends on the `clients` module.
-
 Sets the browser cookies on login and logout, from the Supabase `session`.
 
-Supakit will set these three cookies:
+Supakit will set these three cookies. All of which are available in `locals.session`.
 
 - `sb-user`
 - `sb-access-token`
@@ -226,9 +210,16 @@ event.locals.session = {
 
 ### client
 
-This module depends on the `clients` module.
+Essentially, you "use" this module by importing Supakit's Supabase server client in your code. See example further below.
 
-Authorizes `supabaseServerClient` with the `sb-access-token` cookie value.
+Creates and authorizes `supabaseServerClient` with the `sb-access-token` cookie value.
+
+Usage example:
+
+```js
+/* +layout.server.js */
+import { supabaseServerClient } from 'supakit'
+```
 
 ### auth
 
@@ -248,13 +239,6 @@ import { sequence } from '@sveltejs/kit/hooks'
 import { auth } from 'supakit'
 
 export const handle = sequence(auth, yourHandler)
-```
-```js
-/* hooks.server.js */
-import { sequence } from '@sveltejs/kit/hooks'
-import { cookies, locals } from 'supakit'
-
-export const handle = sequence(cookies, locals, yourHandler)
 ```
 
 ## Protecting Page Routes
@@ -287,8 +271,8 @@ When using a `+layout.server.js` file, first check for a null `locals.session.us
 
 ```js
 /* src/routes/(auth)/+layout.server.js */
-import { redirect } from '@sveltejs/kit';
-import { supabaseServerClient } from 'supakit';
+import { redirect } from '@sveltejs/kit'
+import { supabaseServerClient } from 'supakit'
 
 /**
  * 
@@ -313,7 +297,7 @@ Protect pages using a `+page.server.js` file for each page route. This is needed
 To be clear, the server is called in this process; therefore we have opted out of true client-side navigation. However, this does not cause the page to be server re-rendered; as SvelteKit is only calling the server to re-run the page `load()` function.
 
 ```js
-import { redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit'
 
 /**
  * 
