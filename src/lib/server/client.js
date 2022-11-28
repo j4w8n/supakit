@@ -15,6 +15,9 @@ export const client = async ({ event, resolve }) => {
     supabaseServerClient = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
       global: {
         headers: { 'Authorization': `Bearer ${token}` }
+      },
+      auth: {
+        persistSession: false
       }
     })
   }
