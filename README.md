@@ -93,26 +93,11 @@ const { data, error } = await supabaseServerClient.from('table').select('column'
 
 ## Client-side Modules
 
-### client
-
-Essentially, you "use" this module by importing Supakit's Supabase client in your code. See example further below.
-
-Sets up the Supabase client-side client. The Supabase URL and ANON KEY are pulled from SvelteKit's `$env/dynamic/public`.
-
-Usage example:
-
-```html
-<!-- +page.svelte -->
-<script>
-  import { supabaseClient } from 'supakit'
-</script>
-```
-
 ### store
 
-Manages a secure session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature), and exports `getSession()`. If you pass the store into the `state` module, Supakit will automatically hydrate the store with the returned Supabase `session.user` info (or `null` if logged out).
+Manages a secure, writable session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature). If you pass the store into the `state` module, Supakit will automatically hydrate the store with the returned Supabase `session.user` info (or `null` if logged out).
 
-Usage examples:
+Usage example:
 
 ```html
 <!-- +layout.svelte -->
@@ -139,9 +124,9 @@ Usage examples:
 
 ### state
 
-Handles logic for Supabase's `onAuthStateChange()`. `state` fetches a "cookie" route when the `SIGN_IN` and `SIGN_OUT` events fire. It optionally takes in a writable store or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout.
+Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout. You can pass in your own store, or use Supakit's [store](#Store).
 
-When you pass in Supakit's session store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
+If you pass in a store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
 If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration).
 
@@ -213,22 +198,9 @@ event.locals.session = {
 }
 ```
 
-### client
-
-Essentially, you "use" this module by importing Supakit's Supabase server client in your code. See example further below.
-
-Creates and authorizes `supabaseServerClient` with the `sb-access-token` cookie value.
-
-Usage example:
-
-```js
-/* +layout.server.js */
-import { supabaseServerClient } from 'supakit'
-```
-
 ### auth
 
-Convenienence method for calling the above three. Order is `cookies, locals, client`.
+Convenienence method for calling all server-side modules.
 
 Usage examples:
 
