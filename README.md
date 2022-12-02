@@ -175,8 +175,6 @@ Here are two usage examples. Perhaps a bit confusing, notice our store name is `
 
 ## Server-side Modules
 
-You can import and call these modules individually, in `hooks.server.js`, or use our convenient `auth` module to execute all three.
-
 ### cookies
 
 Sets the browser cookies on login and logout, from the Supabase `session`.
