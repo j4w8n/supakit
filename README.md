@@ -23,9 +23,9 @@ supakit: {
 
 You can override the defaults by creating a `supakit.config.js` file in the root of your project.
 
-- `supakit > cookie > options` takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
-- `supakit > cookie > route` is where our `state` module sends a post-auth Supabase session, for setting and expiring cookies. Our `cookies` module handles setting and expiring cookies for you; but if you'd like to set a different route and/or handle cookies yourself, you can set the path here.
-- `supakit > redirects` is used for post-login/logout redirection using SvelteKit's `goto()`.
+- `supakit > cookie > options` Takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
+- `supakit > cookie > route` Is where our `state` module sends a post-auth Supabase session, for setting and expiring cookies. If this setting is changed, you have to create the route and logic; but with the default setting Supakit handles it all.
+- `supakit > redirects` If set, the user will be redirected to this page, using SvelteKit's `goto()`, after they login and/or logout.
 
 ## Caveats
 
@@ -82,7 +82,7 @@ export const handle = auth
 </script>
 ```
 ```js
-/* server-side */
+/* some server-side file */
 import { supabaseServerClient } from 'supakit'
 
 /* use the supabase client */
@@ -145,9 +145,10 @@ When you pass in Supakit's session store, the returned Supabase `session.user` i
 
 If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration).
 
-Here's a usage example. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
+Here are two usage examples. Perhaps a bit confusing, notice our store name is `session`; but the callback is also receiving `session`, which is Supabase's returned session post login/logout.
 
 ```html
+<!-- +layout.svelte -->
 <script>
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
@@ -168,6 +169,8 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
 </script>
 ```
 ```html
+<!-- +layout.svelte -->
+<!-- this example also assumes you've set the config for supakit > redirects > login/logout -->
 <script>
   import { goto } from '$app/navigation'
   import { state } from 'supakit'
@@ -175,10 +178,12 @@ Here's a usage example. Perhaps a bit confusing, notice our store name is `sessi
   /** @type {import('supakit/types').StateChange} */
   state(null, ({ event, session }) => {
     /* some post login and/or logout code */
-
-    /* then redirect */
-    if (event === 'SIGNED_IN') goto('/app')
-    if (event === 'SIGNED_OUT') goto('/')
+    /**
+     * This is still called, even if you redirect the user post login/logout with the Supakit config.
+     * Of course, this assumes you're redirecting them to a location that inherits whatever layout file
+     * you place the `state()` module in.
+     */
+    console.log('Hello There World!')
   })
 </script>
 ```
@@ -191,7 +196,7 @@ You can import and call these modules individually, in `hooks.server.js`, or use
 
 Sets the browser cookies on login and logout, from the Supabase `session`.
 
-Supakit will set these three cookies. All of which are available in `locals.session`.
+Supakit will set these three cookies. They're automatically updated when the session is refreshed.
 
 - `sb-user`
 - `sb-access-token`
@@ -297,6 +302,7 @@ Protect pages using a `+page.server.js` file for each page route. This is needed
 To be clear, the server is called in this process; therefore we have opted out of true client-side navigation. However, this does not cause the page to be server re-rendered; as SvelteKit is only calling the server to re-run the page `load()` function.
 
 ```js
+/* src/routes/(auth)/app/+page.server.js */
 import { redirect } from '@sveltejs/kit'
 
 /**
