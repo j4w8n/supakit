@@ -4,24 +4,24 @@ A Supabase auth helper for SvelteKit (in beta)
 
 ## Configuration
 
-Here is the default config:
+Here is the default config. You can override the defaults by creating a `supakit.config.js` file in the root of your project.
 
 ```js
-supakit: {
-  cookie: {
-    options: {
-      maxAge: 14400
+export const config = {
+  supakit: {
+    cookie: {
+      options: {
+        maxAge: 14400
+      },
+      route: '/api/supakit'
     },
-    route: '/api/supakit'
-  },
-  redirects: {
-    login: '',
-    logout: ''
+    redirects: {
+      login: '',
+      logout: ''
+    }
   }
 }
 ```
-
-You can override the defaults by creating a `supakit.config.js` file in the root of your project.
 
 - `supakit > cookie > options` Takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
 - `supakit > cookie > route` Is where our `state` module sends a post-auth Supabase session, for setting and expiring cookies. If this setting is changed, you have to create the route and logic; but with the default setting Supakit handles it all.
