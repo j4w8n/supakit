@@ -1,16 +1,11 @@
+// @ts-ignore
 import { config } from '$supakit/config'
+import type { Session } from '@supabase/supabase-js'
 
-/**
- * 
- * @type {import('@sveltejs/kit').Handle}
- */
 export const cookies = async ({ event, resolve }) => {
   const cookieRoute = config.supakit.cookie.route
   const cookieOptions = config.supakit.cookie.options
-  /**
-   * @type {import('@supabase/supabase-js').Session | null}
-   */
-  const session = event.request.body ? await event.request.json() : null
+  const session: Session | null = event.request.body ? await event.request.json() : null
   const cookiesToSet = Object.entries({
     'sb-user': session?.user,
     'sb-access-token': session?.access_token,

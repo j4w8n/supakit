@@ -5,7 +5,7 @@
 // and what to do when importing types
 declare namespace App {
 	interface Locals {
-		session: import('./lib/index').Session;
+		session: import('svelte/store').Writable<any>;
 	}
 	// interface PageData {}
 	// interface Error {}

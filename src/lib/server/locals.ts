@@ -1,13 +1,6 @@
-/**
- * 
- * @type {import('@sveltejs/kit').Handle} 
- */
 export const locals = async ({ event, resolve }) => {
   const cookieList = ['sb-user','sb-access-token','sb-refresh-token']
-  /** 
-   * @type {{[key: string]: string}}
-   */
-  let cookies = {}
+  let cookies: { [key: string]: string } = {}
 
   cookieList.forEach(name => {
     cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null

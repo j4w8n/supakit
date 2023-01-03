@@ -1,29 +1,23 @@
 import { error } from '@sveltejs/kit'
 import { supabaseClient } from './client'
+// @ts-ignore
 import { config } from '$supakit/config'
 import { goto } from '$app/navigation'
+import type { StateChangeCallback } from '../types'
+import type { Writable } from 'svelte/store'
 
-/**
- * 
- * @type {import('../types').StateChange}
- */
-export const state = (store = null, callback = null) => {
+export const state = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
   const loginRedirect = config.supakit.redirects.login
   const logoutRedirect = config.supakit.redirects.logout
 
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    /**
-     * 
-     * @param {string} method 
-     * @param {string | null } body 
-     */
-    const setCookie = async (method, body = null) => {
+    const setCookie = async (method: string, body: string | null = null) => {
       try {
         await fetch(config.supakit.cookie.route || '', {
           method,
           body
         })
-      } catch (/** @type {any} */ err) {
+      } catch (err: any) {
         throw error(500, err)
       }
     }
@@ -42,10 +36,6 @@ export const state = (store = null, callback = null) => {
       if (store && session) store.set(session.user)
     }
 
-    /**
-     * 
-     * @type {import('../types').StateChangeCallback}
-     */
     if (callback) callback({event, session})
   })
 }

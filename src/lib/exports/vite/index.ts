@@ -1,18 +1,16 @@
-import { config } from '../../config/index.js'
+import { config } from '../../config/index'
+import type { Plugin } from 'vite'
 
-/** @return {import('vite').Plugin} */
-export function supakit() {
+export function supakit(): Plugin {
   return {
     name: 'rollup-plugin-supakit',
 
-    /** @param {string} id */
-    resolveId(id) {
+    resolveId(id: string) {
 			// treat $supakit/config as virtual
 			if (id === '$supakit/config') return `\0${id}`
 		},
 
-    /** @param {string} id */
-    async load(id) {
+    async load(id: string) {
 			if (id === '\0$supakit/config') {
         const supakitConfig = await config()
         return `export const config = ${JSON.stringify(supakitConfig)}`

@@ -1,13 +1,9 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+// @ts-ignore
 import { env } from '$env/dynamic/public'
 
-/** @type {import('@supabase/supabase-js').SupabaseClient} */
-export let supabaseServerClient
+export let supabaseServerClient: SupabaseClient
 
-/**
- * 
- * @type {import('@sveltejs/kit').Handle} 
- */
 export const client = async ({ event, resolve }) => {
   const token = event.locals.session.access_token
 
