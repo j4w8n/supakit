@@ -30,7 +30,7 @@
 	"type": "module",
 	"exports": {
 		"./vite": {
-			"import": "./exports/vite/index.js"
+			"import": "./exports/vite/index.ts"
 		},
 		"./types": {
 			"import": "./types/index.d.ts"
