@@ -1,12 +1,12 @@
 import { setContext, getContext, hasContext } from 'svelte'
-import { writable } from 'svelte/store'
+import { writable, type Writable } from 'svelte/store'
+import type { User } from '@supabase/supabase-js'
 
 const keys = { session: Symbol() }
 
 const initSession = () => {
   setContext(keys.session, { 
-    /** @type {import('svelte/store').Writable<import('@supabase/supabase-js').User | null>} */
-    session: writable() 
+    session: writable() as Writable<User|null>
   })
 
   return getContext(keys.session)

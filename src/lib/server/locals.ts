@@ -1,4 +1,6 @@
-export const locals = async ({ event, resolve }) => {
+import type { Handle } from "@sveltejs/kit"
+
+export const locals = (async ({ event, resolve }) => {
   const cookieList = ['sb-user','sb-access-token','sb-refresh-token']
   let cookies: { [key: string]: string } = {}
 
@@ -13,4 +15,4 @@ export const locals = async ({ event, resolve }) => {
   }
 
   return await resolve(event)
-}
+}) satisfies Handle

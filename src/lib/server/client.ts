@@ -1,10 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import type { Handle } from "@sveltejs/kit"
 // @ts-ignore
 import { env } from '$env/dynamic/public'
 
 export let supabaseServerClient: SupabaseClient
 
-export const client = async ({ event, resolve }) => {
+export const client = (async ({ event, resolve }) => {
   const token = event.locals.session.access_token
 
   if (token) {
@@ -19,4 +20,4 @@ export const client = async ({ event, resolve }) => {
   }
   
   return await resolve(event)
-}
+}) satisfies Handle

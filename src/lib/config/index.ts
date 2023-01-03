@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import * as url from 'url'
 import defaults from './defaults'
-import { merge } from './utils'
+import { merge } from './utils.js'
 import type { Config } from '../types'
 
 export const config =  async (): Promise<Config> => {

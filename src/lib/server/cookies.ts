@@ -1,8 +1,9 @@
 // @ts-ignore
 import { config } from '$supakit/config'
 import type { Session } from '@supabase/supabase-js'
+import type { Handle } from "@sveltejs/kit"
 
-export const cookies = async ({ event, resolve }) => {
+export const cookies = (async ({ event, resolve }) => {
   const cookieRoute = config.supakit.cookie.route
   const cookieOptions = config.supakit.cookie.options
   const session: Session | null = event.request.body ? await event.request.json() : null
@@ -39,4 +40,4 @@ export const cookies = async ({ event, resolve }) => {
   }
 
   return await resolve(event)
-}
+}) satisfies Handle
