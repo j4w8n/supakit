@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import * as url from 'url'
-import defaults from './defaults'
+import defaults from './defaults.js'
 import { merge } from './utils.js'
 import type { Config } from '../types'
 

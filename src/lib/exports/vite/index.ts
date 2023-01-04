@@ -1,4 +1,4 @@
-import { config } from '../../config'
+import { config } from '../../config/index.js'
 import type { Plugin } from 'vite'
 
 export function supakit(): Plugin {
