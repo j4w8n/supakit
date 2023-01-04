@@ -29,6 +29,9 @@
 	},
 	"type": "module",
 	"exports": {
+		".": {
+			"import": "./exports/index.js"
+		},
 		"./vite": {
 			"import": "./exports/vite/index.js"
 		},
@@ -36,7 +39,7 @@
 			"import": "./types/index.d.ts"
 		}
 	},
-	"types": "./types/index.d.ts",
+	"types": "types/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"

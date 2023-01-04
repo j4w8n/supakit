@@ -1,7 +1,6 @@
 import { sequence } from "@sveltejs/kit/hooks"
-import { cookies } from "./cookies.js"
-import { client } from "./client.js"
-import { locals } from "./locals.js"
-import type { Handle } from "@sveltejs/kit"
+import { cookies } from "./cookies"
+import { client } from "./client"
+import { locals } from "./locals"
 
-export const auth = sequence(cookies, locals, client) satisfies Handle
+export const auth = sequence(cookies, locals, client)
