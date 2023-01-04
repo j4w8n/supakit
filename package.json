@@ -30,16 +30,14 @@
 	"type": "module",
 	"exports": {
 		".": {
+			"types": "./exports/index.d.ts",
 			"import": "./exports/index.js"
 		},
 		"./vite": {
 			"import": "./exports/vite/index.js"
-		},
-		"./types": {
-			"import": "./types/index.d.ts"
 		}
 	},
-	"types": "types/index.d.ts",
+	"types": "exports/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"

@@ -1,4 +1,4 @@
-import type { Config } from '../types'
+import type { Config } from '../exports'
 
 export const merge = (current: Config, updates: Config): Config => {
   if (current) {
