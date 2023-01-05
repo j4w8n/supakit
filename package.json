@@ -8,15 +8,15 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"types": "./exports/index.d.ts",
-			"import": "./exports/index.js"
+			"types": "./src/lib/exports/index.d.ts",
+			"import": "./src/lib/exports/index.js"
 		},
 		"./vite": {
-			"types": "./exports/vite/index.d.ts",
-			"import": "./exports/vite/index.js"
+			"types": "./src/lib/exports/vite/index.d.ts",
+			"import": "./src/lib/exports/vite/index.js"
 		}
 	},
-	"types": "exports/index.d.ts",
+	"types": "src/lib/exports/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"
