@@ -6,6 +6,9 @@
 		"vite": "^4.0.4"
 	},
 	"type": "module",
+	"files": [
+		"src"
+	],
 	"exports": {
 		".": {
 			"types": "./src/lib/exports/index.d.ts",
