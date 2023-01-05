@@ -1,6 +1,6 @@
 {
 	"name": "supakit",
-	"version": "1.0.0-next.45",
+	"version": "1.0.0-next.46",
 	"devDependencies": {
 		"@supabase/supabase-js": "^2.2.3",
 		"@sveltejs/kit": "^1.0.1",
