@@ -1,9 +1,19 @@
 {
 	"name": "supakit",
 	"version": "1.0.0-next.46",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "svelte-kit sync && svelte-package",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+		"test": "playwright test",
+		"lint": "eslint ."
+	},
 	"devDependencies": {
 		"@supabase/supabase-js": "^2.2.3",
+		"@sveltejs/adapter-auto": "^1.0.0",
 		"@sveltejs/kit": "^1.0.1",
+		"@sveltejs/package": "^1.0.1",
 		"@sveltejs/vite-plugin-svelte": "^2.0.2",
 		"svelte": "^3.55.0",
 		"typescript": "^4.9.4",
