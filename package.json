@@ -21,7 +21,7 @@
 	},
 	"type": "module",
 	"files": [
-		"src/lib"
+		"src"
 	],
 	"exports": {
 		"./package.json": "./package.json",
