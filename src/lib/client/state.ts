@@ -3,7 +3,7 @@ import { supabaseClient } from './client.js'
 // @ts-ignore
 import { config } from '$supakit/config'
 import { goto } from '$app/navigation'
-import type { StateChangeCallback } from '../exports'
+import type { StateChangeCallback } from '../exports/index'
 import type { Writable } from 'svelte/store'
 
 export const state = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {

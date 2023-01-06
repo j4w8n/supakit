@@ -20,6 +20,7 @@
 		"vite": "^4.0.4"
 	},
 	"type": "module",
+	"files": [ "src/lib" ],
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
