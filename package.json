@@ -26,9 +26,7 @@
 			"types": "./exports/index.d.ts",
 			"import": "./exports/index.js"
 		},
-		"./vite": {
-			"import": "./exports/vite/index.js"
-		}
+		"./vite": "./exports/vite/index.js"
 	},
 	"types": "exports/index.d.ts",
 	"repository": {
