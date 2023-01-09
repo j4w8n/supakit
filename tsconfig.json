@@ -11,8 +11,8 @@
 		"strict": true,
 		"moduleResolution": "node",
 		"paths": {
-			"$supakit/config": ["./src/lib/types/ambient"],
-			"supakit/vite": ["./src/lib/types/ambient"],
+			"$supakit/config": ["src/lib/types/ambient"],
+			"supakit/vite": ["src/lib/types/ambient"],
 			"$lib": ["src/lib"],
   		"$lib/*": ["src/lib/*"]
 		}
