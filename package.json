@@ -33,9 +33,7 @@
 			"types": "./types/index.d.ts",
 			"import": "./index.js"
 		},
-		"./vite": {
-			"import": "./exports/vite/index.js"
-		}
+		"./vite": "./exports/vite"
 	},
 	"types": "types/index.d.ts",
 	"repository": {
