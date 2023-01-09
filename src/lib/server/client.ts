@@ -1,6 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import type { Handle } from "@sveltejs/kit"
-// @ts-ignore
 import { env } from '$env/dynamic/public'
 
 export let supabaseServerClient: SupabaseClient

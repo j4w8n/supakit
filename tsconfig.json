@@ -1,14 +1,33 @@
+// {
+// 	"extends": "./.svelte-kit/tsconfig.json",
+// 	"compilerOptions": {
+// 		"allowJs": true,
+// 		"checkJs": true,
+// 		"noEmit": true,
+// 		"strict": true,
+// 		"target": "es2020",
+// 		"module": "es2022",
+// 		"moduleResolution": "node",
+// 		"noUnusedLocals": true,
+// 		"noUnusedParameters": true
+// 	}
+// }
 {
 	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
-		"noEmit": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"sourceMap": true,
 		"strict": true,
-		"target": "es2020",
-		"module": "es2022",
 		"moduleResolution": "node",
-		"noUnusedLocals": true,
-		"noUnusedParameters": true
+		"paths": {
+			"$supakit/config": ["./src/lib/types/ambient"],
+			"types": ["./src/lib/types/index"]
+		}
 	}
 }
+

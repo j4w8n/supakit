@@ -1,5 +1,7 @@
-import { config } from '../../config/index.js'
+import { getConfig } from '$supakit/config'
 import type { Plugin } from 'vite'
+
+const config = getConfig()
 
 export function supakit(): Plugin {
   return {
@@ -12,8 +14,8 @@ export function supakit(): Plugin {
 
     async load(id: string) {
 			if (id === '\0$supakit/config') {
-        const supakitConfig = await config()
-        return `export const config = ${JSON.stringify(supakitConfig)}`
+        //const supakitConfig = await config()
+        return `export const config = ${JSON.stringify(config)}`
       }
 		}
   }

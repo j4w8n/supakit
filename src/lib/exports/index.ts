@@ -1,8 +1,0 @@
-export { auth } from '../server/auth.js'
-export { locals } from '../server/locals.js'
-export { cookies } from '../server/cookies.js'
-export { client } from '../server/client.js'
-export { supabaseClient } from '../client/client.js'
-export { supabaseServerClient } from '../server/client.js'
-export { state } from '../client/state.js'
-export { getSession } from '../client/store.js'

@@ -1,6 +1,6 @@
-import type { Config } from '../exports/index'
+import type { SupakitConfig } from 'types'
 
-export const merge = (current: Config, updates: Config): Config => {
+export const merge = (current: SupakitConfig, updates: SupakitConfig): SupakitConfig => {
   if (current) {
     for (let key of Object.keys(updates)) {
       if (!current.hasOwnProperty(key) || typeof updates[key] !== 'object') current[key] = updates[key];

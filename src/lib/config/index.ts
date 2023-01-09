@@ -1,11 +1,11 @@
-import fs from 'fs'
-import path from 'path'
+import * as fs from 'fs'
+import * as path from 'path'
 import * as url from 'url'
 import defaults from './defaults.js'
 import { merge } from './utils.js'
-import type { Config } from '../exports/index'
+import type { SupakitConfig } from 'types'
 
-export const config =  async (): Promise<Config> => {
+export const getConfig =  async (): Promise<SupakitConfig> => {
   const config_file = path.join(process.cwd(), 'supakit.config.js')
 
   if (!fs.existsSync(config_file)) return defaults

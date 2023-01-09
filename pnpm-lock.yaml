@@ -6,6 +6,8 @@ specifiers:
   '@sveltejs/kit': ^1.0.1
   '@sveltejs/package': ^1.0.1
   '@sveltejs/vite-plugin-svelte': ^2.0.2
+  '@types/cookie': ^0.5.1
+  '@types/node': ^18.11.18
   svelte: ^3.55.0
   typescript: ^4.9.4
   vite: ^4.0.4
@@ -16,9 +18,11 @@ devDependencies:
   '@sveltejs/kit': 1.0.1_svelte@3.55.0+vite@4.0.4
   '@sveltejs/package': 1.0.1_niwyv7xychq2ag6arq5eqxbomm
   '@sveltejs/vite-plugin-svelte': 2.0.2_svelte@3.55.0+vite@4.0.4
+  '@types/cookie': 0.5.1
+  '@types/node': 18.11.18
   svelte: 3.55.0
   typescript: 4.9.4
-  vite: 4.0.4
+  vite: 4.0.4_@types+node@18.11.18
 
 packages:
 
@@ -315,7 +319,7 @@ packages:
       svelte: 3.55.0
       tiny-glob: 0.2.9
       undici: 5.14.0
-      vite: 4.0.4
+      vite: 4.0.4_@types+node@18.11.18
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -349,7 +353,7 @@ packages:
       magic-string: 0.27.0
       svelte: 3.55.0
       svelte-hmr: 0.15.1_svelte@3.55.0
-      vite: 4.0.4
+      vite: 4.0.4_@types+node@18.11.18
       vitefu: 0.2.4_vite@4.0.4
     transitivePeerDependencies:
       - supports-color
@@ -357,6 +361,10 @@ packages:
 
   /@types/cookie/0.5.1:
     resolution: {integrity: sha512-COUnqfB2+ckwXXSFInsFdOAWQzCCx+a5hq2ruyj+Vjund94RJQd4LG2u9hnvJrTgunKAaax7ancBYlDrNYxA0g==}
+    dev: true
+
+  /@types/node/18.11.18:
+    resolution: {integrity: sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==}
     dev: true
 
   /@types/phoenix/1.5.4:
@@ -870,7 +878,7 @@ packages:
       node-gyp-build: 4.5.0
     dev: true
 
-  /vite/4.0.4:
+  /vite/4.0.4_@types+node@18.11.18:
     resolution: {integrity: sha512-xevPU7M8FU0i/80DMR+YhgrzR5KS2ORy1B4xcX/cXLsvnUWvfHuqMmVU6N0YiJ4JWGRJJsLCgjEzKjG9/GKoSw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -895,6 +903,7 @@ packages:
       terser:
         optional: true
     dependencies:
+      '@types/node': 18.11.18
       esbuild: 0.16.14
       postcss: 8.4.20
       resolve: 1.22.1
@@ -911,7 +920,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 4.0.4
+      vite: 4.0.4_@types+node@18.11.18
     dev: true
 
   /webidl-conversions/3.0.1:

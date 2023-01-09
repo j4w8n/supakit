@@ -15,6 +15,8 @@
 		"@sveltejs/kit": "^1.0.1",
 		"@sveltejs/package": "^1.0.1",
 		"@sveltejs/vite-plugin-svelte": "^2.0.2",
+		"@types/cookie": "^0.5.1",
+		"@types/node": "^18.11.18",
 		"svelte": "^3.55.0",
 		"typescript": "^4.9.4",
 		"vite": "^4.0.4"
@@ -23,12 +25,12 @@
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
-			"types": "./exports/index.d.ts",
-			"import": "./exports/index.js"
+			"types": "./types/index.d.ts",
+			"import": "./index.js"
 		},
 		"./vite": "./exports/vite/index.js"
 	},
-	"types": "exports/index.d.ts",
+	"types": "types/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"
