@@ -1,4 +1,4 @@
-import type { SupakitConfig } from 'supakit/types'
+import type { SupakitConfig } from 'supakit'
 import type { Plugin } from 'vite'
 
 /**
@@ -10,6 +10,13 @@ declare module '$supakit/config' {
    * and any user-supplied configuration via `supakit.config.js` in the project's root directory.
    */
   export function getConfig(): SupakitConfig
+}
+
+/**
+ * Supakit's Vite plugin
+ */
+declare module 'supakit/vite' {
+  export function supakit(): Plugin
 }
 
 /**
