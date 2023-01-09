@@ -13,13 +13,6 @@ declare module '$supakit/config' {
 }
 
 /**
- * Supakit's types
- */
-declare module 'supakit/types' {
-
-}
-
-/**
  * Supakit's Vite plugin
  */
 declare module 'supakit/vite' {
