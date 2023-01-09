@@ -34,7 +34,8 @@
 			"import": "./index.js"
 		},
 		"./vite": {
-			"import": "./exports/vite/index"
+			"types": "./exports/vite/index.d.ts",
+			"import": "./exports/vite/index.js"
 		}
 	},
 	"types": "types/index.d.ts",
