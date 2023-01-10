@@ -28,12 +28,12 @@
 	},
 	"type": "module",
 	"exports": {
-		"./package.json": "./package.json",
 		".": {
 			"types": "./types/index.d.ts",
 			"import": "./index.js"
 		},
 		"./vite": {
+			"types": "./exports/vite/index.d.ts",
 			"import": "./exports/vite/index.js"
 		}
 	},
