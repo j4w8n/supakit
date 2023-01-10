@@ -8,12 +8,12 @@ declare module '$supakit/config' {
 }
 
 declare module 'supakit/vite' {
-	import type { Plugin } from 'vite'
+	import { Plugin } from 'vite'
 
 	/**
 	 * Returns the Supakit Vite plugin.
 	 */
-  export function supakit(): Plugin
+  export function supakit(): Promise<Plugin>
 }
 
 /**

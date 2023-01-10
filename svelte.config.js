@@ -5,6 +5,11 @@ const config = {
 	kit: {
 		adapter: adapter()
 	},
+	package: {
+		exports() {
+			false
+		}
+	}
 };
 
 export default config;

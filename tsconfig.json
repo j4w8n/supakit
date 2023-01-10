@@ -10,10 +10,10 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "node",
+		"baseUrl": "./src/lib",
 		"paths": {
-			"$supakit/config": ["src/lib/types/ambient"],
-			"$lib": ["src/lib"],
-  		"$lib/*": ["src/lib/*"]
+			"$supakit/config": ["/types/ambient"],
+			"supakit/vite": ["types/ambient"]
 		}
 	}
 }
