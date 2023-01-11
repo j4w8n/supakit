@@ -29,11 +29,11 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"types": "./types/index.d.ts",
+			"types": "./index.d.ts",
 			"import": "./index.js"
 		},
 		"./vite": {
-			"types": "./types/ambient.d.ts",
+			"types": "./exports/vite/index.d.ts",
 			"import": "./exports/vite/index.js"
 		}
 	},
