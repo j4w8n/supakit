@@ -1,7 +1,7 @@
 import type { User, Session } from '@supabase/supabase-js'
 import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
-import './ambient.js'
+import './ambient'
 
 export type SupakitConfig = {
   [key: string]: any
