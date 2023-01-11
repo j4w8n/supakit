@@ -2,7 +2,7 @@ import type { User, Session, SupabaseClient } from '@supabase/supabase-js'
 import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from "@sveltejs/kit"
-import './ambient'
+import './ambient.js'
 
 export type SupakitConfig = {
   [key: string]: any
@@ -36,11 +36,11 @@ export type StateChangeCallback = ({event, session}: {event: string, session: Se
 
 export type StateChange = (store?: Writable<User | null> | null, callback?: StateChangeCallback | null) => void
 
-export type auth = () => Handle
-export type cookies = () => Handle
-export type locals = () => Handle
-export type client = () => Handle
-export type state = (store: Writable<any> | null, callback: StateChangeCallback | null) => void
-export type getSession = () => Writable<any>
-export type supabaseClient = SupabaseClient
-export type supabaseServerClient = SupabaseClient
+export function auth(): Handle
+export function cookies(): Handle
+export function locals(): Handle
+export function client(): Handle
+export function state(store: Writable<any> | null, callback: StateChangeCallback | null): void
+export function getSession(): Writable<any>
+export const supabaseClient = SupabaseClient
+export const supabaseServerClient = SupabaseClient
