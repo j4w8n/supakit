@@ -3,11 +3,11 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
+		"noEmit": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
-		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "node",
 		"baseUrl": "./src/lib/",
