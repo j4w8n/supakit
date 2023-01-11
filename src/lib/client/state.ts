@@ -2,7 +2,7 @@ import { getConfig } from '$supakit/config'
 import { error } from '@sveltejs/kit'
 import { supabaseClient } from './client.js'
 import { goto } from '$app/navigation'
-import type { StateChangeCallback } from 'types'
+import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
 
 const config = getConfig()
@@ -14,7 +14,7 @@ export const state = (store: Writable<any> | null = null, callback: StateChangeC
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
       try {
-        await fetch(config.supakit.cookie.route || '', {
+        await fetch(config.supakit.cookie?.route || '', {
           method,
           body
         })

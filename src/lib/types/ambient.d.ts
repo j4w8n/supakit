@@ -1,3 +1,5 @@
+/// <reference types="@sveltejs/kit" />
+
 declare module '$supakit/config' {
 	import type { SupakitConfig } from 'supakit'
   /**
@@ -17,16 +19,14 @@ declare module 'supakit/vite' {
 }
 
 /**
- * Declare typings for SvelteKit's interfaces, within the library
+ * Declare Supakit's typings for SvelteKit's interfaces
  */
-declare global {
-	namespace App {
-		interface Locals {
-			session: {
-				user: string | null
-				access_token: string | null
-				refresh_token: string | null
-			}
+namespace App {
+	interface Locals {
+		session: {
+			user: string | null
+			access_token: string | null
+			refresh_token: string | null
 		}
 	}
 }

@@ -7,8 +7,8 @@ const defaults = {
       route: '/api/supakit'
     },
     redirects: {
-      login: '',
-      logout: ''
+      login: null,
+      logout: null
     }
   }
 }

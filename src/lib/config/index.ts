@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as url from 'url'
 import defaults from './defaults.js'
 import { merge } from './utils.js'
-import type { SupakitConfig } from 'types'
+import type { SupakitConfig } from 'supakit'
 
 export const getConfig =  async (): Promise<SupakitConfig> => {
   const config_file = path.join(process.cwd(), 'supakit.config.js')
