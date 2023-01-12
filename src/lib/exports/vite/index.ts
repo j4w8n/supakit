@@ -1,4 +1,4 @@
-import { getConfig } from '$supakit/config'
+import { getConfig } from '../../config/index.js'
 import type { Plugin } from 'vite'
 
 const config = getConfig()

@@ -14,7 +14,7 @@
 		"paths": {
 			"supakit": ["types/index"],
 			"$supakit/config": ["types/ambient"],
-			"supakit/vite": ["types/ambient"]
+			"supakit/vite": ["types/index"]
 		}
 	}
 }

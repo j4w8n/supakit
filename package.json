@@ -33,6 +33,7 @@
 			"import": "./exports/index.js"
 		},
 		"./vite": {
+			"types": "./types/index.d.ts",
 			"import": "./exports/vite/index.js"
 		}
 	},

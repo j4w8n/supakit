@@ -1,6 +1,7 @@
 # Supakit
 
 A Supabase auth helper for SvelteKit (in beta)
+CURRENTLY NON-FUNCTIONING
 
 ## Configuration
 
