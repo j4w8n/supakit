@@ -35,14 +35,11 @@ export type UserConfig = {
 
 export type StateChangeCallback = ({event, session}: {event: string, session: Session | null}) => void
 
-export function auth(): Handle
-export function locals(): Handle
-export function cookies(): Handle
-export function client(): Handle
-export function state(
+export function supakitAuth(): Handle
+export function supabaseStateChange(
   store?: Writable<User | null> | null, 
   callback?: (({event, session}: {event: string, session: Session | null}) => void) | null
 ): void
 export function getSession(): Writable<User | null>
-export const supabaseClient: SupabaseClient
+export const supabaseBrowserClient: SupabaseClient
 export const supabaseServerClient: SupabaseClient

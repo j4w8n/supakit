@@ -1,15 +1,15 @@
 import { config } from '$supakit/config'
 import { error } from '@sveltejs/kit'
-import { supabaseClient } from './client.js'
+import { supabaseBrowserClient } from './client.js'
 import { goto } from '$app/navigation'
 import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
 
-export const state = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
+export const supabaseAuthStateChange = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
   const loginRedirect = config.supakit.redirects.login
   const logoutRedirect = config.supakit.redirects.logout
 
-  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  supabaseBrowserClient.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
       try {
         await fetch(config.supakit.cookie?.route || '', {
