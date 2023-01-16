@@ -7,7 +7,7 @@ A Supabase auth helper for SvelteKit (in beta)
 Here is the default config. You can override the defaults by creating a `supakit.config.js` file in the root of your project.
 
 ```js
-export const config = {
+const config = {
   supakit: {
     cookie: {
       options: {
@@ -21,6 +21,8 @@ export const config = {
     }
   }
 }
+
+export default config
 ```
 
 - `supakit > cookie > options` Takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
