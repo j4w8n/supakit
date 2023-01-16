@@ -36,7 +36,7 @@ export type UserConfig = {
 export type StateChangeCallback = ({event, session}: {event: string, session: Session | null}) => void
 
 export function supakitAuth(): Handle
-export function supabaseStateChange(
+export function supabaseAuthStateChange(
   store?: Writable<User | null> | null, 
   callback?: (({event, session}: {event: string, session: Session | null}) => void) | null
 ): void
