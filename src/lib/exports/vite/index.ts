@@ -1,8 +1,6 @@
 import { getConfig } from '../../config/index.js'
 import type { Plugin } from 'vite'
 
-const config = getConfig()
-
 export function supakit(): Plugin {
   return {
     name: 'rollup-plugin-supakit',
@@ -13,8 +11,8 @@ export function supakit(): Plugin {
 		},
 
     async load(id: string) {
+      const config = await getConfig()
 			if (id === '\0$supakit/config') {
-        //const supakitConfig = await config()
         return `export const config = ${JSON.stringify(config)}`
       }
 		}

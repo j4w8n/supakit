@@ -9,11 +9,10 @@
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"moduleResolution": "node",
 		"baseUrl": "./src/lib/",
 		"paths": {
 			"supakit": ["types/index"],
-			"$supakit/config": ["types/ambient"],
+			"$supakit/config": ["types/index"],
 			"supakit/vite": ["types/index"]
 		}
 	}

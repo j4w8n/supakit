@@ -1,8 +1,6 @@
-import { getConfig } from '$supakit/config'
+import { config } from '$supakit/config'
 import type { Session } from '@supabase/supabase-js'
 import type { Handle } from "@sveltejs/kit"
-
-const config = getConfig()
 
 export const cookies = (async ({ event, resolve }) => {
   const cookieRoute = config.supakit.cookie.route

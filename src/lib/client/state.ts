@@ -1,11 +1,9 @@
-import { getConfig } from '$supakit/config'
+import { config } from '$supakit/config'
 import { error } from '@sveltejs/kit'
 import { supabaseClient } from './client.js'
 import { goto } from '$app/navigation'
 import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
-
-const config = getConfig()
 
 export const state = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
   const loginRedirect = config.supakit.redirects.login

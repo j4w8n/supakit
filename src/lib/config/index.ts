@@ -10,7 +10,7 @@ export const getConfig = async (): Promise<SupakitConfig> => {
 
   if (!fs.existsSync(config_file)) return defaults
 
-  const user_config = await import(url.pathToFileURL(config_file).href)
+  const user_config = await import(/* @vite-ignore */ url.pathToFileURL(config_file).href)
 
   if (typeof user_config.default !== 'object') throw new Error('supakit.config.js must be an object')
 
