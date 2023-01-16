@@ -13,7 +13,9 @@ export const client = (async ({ event, resolve }) => {
         headers: { 'Authorization': `Bearer ${token}` }
       },
       auth: {
-        persistSession: false
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
       }
     })
   }
