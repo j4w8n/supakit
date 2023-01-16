@@ -5,9 +5,7 @@ import type { User } from '@supabase/supabase-js'
 const keys = { session: Symbol() }
 
 const initSession = (): Writable<User | null> => {
-  setContext(keys.session, { 
-    session: writable() as Writable<User|null>
-  })
+  setContext(keys.session, writable() as Writable<User | null>)
 
   return getContext(keys.session)
 }
