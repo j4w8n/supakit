@@ -105,7 +105,7 @@ Usage example:
   import { page } from '$app/stores'
   import { getSession } from 'supakit'
 
-  const { session } = getSession()
+  const session = getSession()
 
   $session = $page.data.session
 </script>
@@ -114,7 +114,7 @@ Usage example:
 <!-- +page.svelte -->
 <script>
   import { getSession } from 'supakit'
-  const { session } = getSession()
+  const session = getSession()
 </script>
 
 {#if $session}
@@ -139,7 +139,7 @@ Here are two usage examples. Perhaps a bit confusing, notice our store name is `
   import { goto } from '$app/navigation'
   import { getSession, state } from 'supakit'
 
-  const { session } = getSession()
+  const session = getSession()
 
   $session = $page.data.session
 
