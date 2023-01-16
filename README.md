@@ -162,7 +162,6 @@ Here are two usage examples:
 <!-- +layout.svelte -->
 <!-- this example assumes you've set the config for supakit > redirects > login/logout -->
 <script>
-  import { goto } from '$app/navigation'
   import { supabaseAuthStateChange } from 'supakit'
 
   supabaseAuthStateChange(null, ({ event, session }) => {
