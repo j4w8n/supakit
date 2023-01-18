@@ -20,7 +20,7 @@ declare module 'supakit/vite' {
   export function supakit(): Promise<Plugin>
 }
 
-declare module '$supakit/config' {
+declare module 'supakit:config' {
 	import type { SupakitConfig } from 'supakit'
   /**
    * A function which returns the merged result of the default configuration, 

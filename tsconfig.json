@@ -12,7 +12,7 @@
 		"baseUrl": "./src/lib/",
 		"paths": {
 			"supakit": ["types/index"],
-			"$supakit/config": ["types/index"],
+			"supakit:config": ["types/index"],
 			"supakit/vite": ["types/index"]
 		}
 	}

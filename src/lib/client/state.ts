@@ -1,4 +1,4 @@
-import { config } from '$supakit/config'
+import { config } from 'supakit:config'
 import { error } from '@sveltejs/kit'
 import { supabaseBrowserClient } from './client.js'
 import { goto } from '$app/navigation'

@@ -1,4 +1,4 @@
-import { config } from '$supakit/config'
+import { config } from 'supakit:config'
 import type { Session } from '@supabase/supabase-js'
 import type { Handle } from "@sveltejs/kit"
 
