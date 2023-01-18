@@ -8,10 +8,9 @@ export function supakit(): Plugin {
     name: 'rollup-plugin-supakit',
 
     resolveId(id: string) {
-			// treat $supakit/config as virtual
+			// treat supakit:config as virtual
 			if (id === virtual_module_id) return resolved_virtual_module_id
 		},
-
     async load(id: string) {
       const config = await getConfig()
 			if (id === resolved_virtual_module_id) {
