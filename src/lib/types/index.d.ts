@@ -41,5 +41,6 @@ export function supabaseAuthStateChange(
   callback?: (({event, session}: {event: string, session: Session | null}) => void) | null
 ): void
 export function getSession(): Writable<User | null>
+export function setConfig(): void
 export const supabaseBrowserClient: SupabaseClient
 export const supabaseServerClient: SupabaseClient

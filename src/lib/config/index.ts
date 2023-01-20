@@ -8,7 +8,7 @@ export const getConfig = async (): Promise<SupakitConfig> => {
   return config ?? defaults
 }
 
-export const setConfig = (value: UserConfig) => {
+export const setConfig = (value: UserConfig): void => {
   if (typeof value !== 'object') throw new Error('config must be an object')
   /**
    * TODO: validate config before merging
