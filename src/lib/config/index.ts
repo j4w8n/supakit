@@ -5,6 +5,7 @@ import type { SupakitConfig, UserConfig } from 'supakit'
 let config: SupakitConfig
 
 export const getConfig = async (): Promise<SupakitConfig> => {
+  console.log(config ?? defaults)
   return config ?? defaults
 }
 

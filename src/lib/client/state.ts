@@ -1,4 +1,4 @@
-import { getConfig } from 'config/index.js'
+import { getConfig } from '../config/index.js'
 import { error } from '@sveltejs/kit'
 import { supabaseBrowserClient } from './client.js'
 import { goto } from '$app/navigation'

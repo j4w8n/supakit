@@ -1,4 +1,4 @@
-import { getConfig } from 'config'
+import { getConfig } from '../config/index.js'
 import type { Session } from '@supabase/supabase-js'
 import type { Handle } from "@sveltejs/kit"
 
