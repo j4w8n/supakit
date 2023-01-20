@@ -1,16 +1,12 @@
-const defaults = {
+const config = {
   supakit: {
     cookie: {
       options: {
-        maxAge: 14400
+        maxAge: 1000 * 60 * 60 * 24 * 365
       },
-      route: '/api/supakit'
-    },
-    redirects: {
-      login: null,
-      logout: null
+      route: '/supakit'
     }
   }
 }
 
-export default defaults
+export { config }

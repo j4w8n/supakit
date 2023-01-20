@@ -1,18 +1,14 @@
-import { config } from 'supakit:config'
+import { config } from '../config/defaults'
 import { error } from '@sveltejs/kit'
 import { supabaseBrowserClient } from './client.js'
-import { goto } from '$app/navigation'
 import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
 
 export const supabaseAuthStateChange = (store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
-  const loginRedirect = config.supakit.redirects.login
-  const logoutRedirect = config.supakit.redirects.logout
-
   supabaseBrowserClient.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
       try {
-        await fetch(config.supakit.cookie?.route || '', {
+        await fetch(config.supakit.cookie.route, {
           method,
           body
         })
@@ -20,19 +16,13 @@ export const supabaseAuthStateChange = (store: Writable<any> | null = null, call
         throw error(500, err)
       }
     }
-    if (event === 'SIGNED_IN') {
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
       await setCookie('POST', JSON.stringify(session))
       if (store && session) store.set(session.user)
-      if (loginRedirect) goto(loginRedirect)
     }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
       if (store) store.set(null)
-      if (logoutRedirect) goto(logoutRedirect)
-    }
-    if (event === 'TOKEN_REFRESHED') {
-      await setCookie('POST', JSON.stringify(session))
-      if (store && session) store.set(session.user)
     }
 
     if (callback) callback({event, session})

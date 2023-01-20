@@ -10,21 +10,3 @@ declare namespace App {
 		}
 	}
 }
-
-declare module 'supakit/vite' {
-	import { Plugin } from 'vite'
-
-	/**
-	 * Returns the Supakit Vite plugin.
-	 */
-  export function supakit(): Promise<Plugin>
-}
-
-declare module 'supakit:config' {
-	import type { SupakitConfig } from 'supakit'
-  /**
-   * A function which returns the merged result of the default configuration, 
-   * and any user-supplied configuration via `supakit.config.js` in the project's root directory.
-   */
-  export const config: SupakitConfig
-}
