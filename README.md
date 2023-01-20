@@ -2,6 +2,33 @@
 
 A Supabase auth helper for SvelteKit (in beta)
 
+## Configuration
+
+Here is the default config. You can override the defaults by importing `setConfig()` into `hooks.client.ts` and passing in a configuration object.
+
+```js
+const defaults = {
+  supakit: {
+    cookie: {
+      options: {
+        maxAge: 1000 * 60 * 60 * 24 * 265
+      },
+      route: '/supakit'
+    },
+    redirects: {
+      login: '',
+      logout: ''
+    }
+  }
+}
+
+export default defaults
+```
+
+- `supakit > cookie > options` Takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
+- `supakit > cookie > route` Is where our `supabaseAuthStateChange()` module sends a post-auth Supabase session, for setting and expiring cookies. If this setting is changed, you have to create the route and logic; but with the default setting Supakit handles it all.
+- `supakit > redirects` If set, the user will be redirected to these pages, using SvelteKit's `goto()`, after they login and/or logout.
+
 ## Caveats
 
 - I've only done local tests with the GitHub OAuth login.
@@ -60,6 +87,24 @@ Supakit will set these three browser cookies. They're automatically updated when
 - `sb-access-token`
 - `sb-refresh-token`
 
+### setConfig()
+
+Allows you to set your own Supakit configuration options.
+
+```js
+/* hooks.client.js */
+import { setConfig } from 'supakit'
+
+setConfig({
+  supakit: {
+    redirects: {
+      login: '/app',
+      logout: '/'
+    }
+  }
+})
+```
+
 ### getSession()
 
 Manages a secure, writable session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature). If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session.user` info (or `null` if logged out).
@@ -91,11 +136,13 @@ Usage example:
 
 ### supabaseAuthStateChange()
 
-Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout - such as redirects. You can pass in your own store, or use Supakit's [store](#getSession).
+Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store or `null`, and a callback function which receives the Supabase `event` and `session` if you need to do additional work post-login/logout. You can pass in your own store, or use Supakit's [store](#getSession).
 
 If you pass in a store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
-Here is a usage example:
+If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration).
+
+Here are two usage examples:
 
 ```html
 <!-- +layout.svelte -->
@@ -110,11 +157,27 @@ Here is a usage example:
   $localSession = $page.data.session
 
   supabaseAuthStateChange(localSession, ({ event, session }) => {
-    /* post login and/or logout code */
+    /* some post login and/or logout code */
 
-    /* redirect example */
+    /* then redirect - assuming you don't set this in the configuration */
     if (event === 'SIGNED_IN') goto('/app')
     if (event === 'SIGNED_OUT') goto('/')
+  })
+</script>
+```
+```html
+<!-- +layout.svelte -->
+<script>
+  import { supabaseAuthStateChange } from 'supakit'
+
+  supabaseAuthStateChange(null, ({ event, session }) => {
+    /* some post login and/or logout code */
+    /**
+     * This is still called, even if you redirect the user post login/logout with the Supakit config.
+     * Of course, this assumes you're redirecting them to a location that inherits whatever layout file
+     * you place the `supabaseAuthStateChange()` module in.
+     */
+    console.log('Hello There World!')
   })
 </script>
 ```
@@ -154,7 +217,7 @@ export const handle = sequence(supakitAuth, yourHandler)
 
 Sometimes you want a user to be logged in, in order to access certain pages.
 
-Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.ts` file. However, this isn't required unless you need shared/cached data across pages under the group.
+Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.ts` file. However, this isn't required unless you need shared data across pages under the group.
 ```shell
 src/routes/
 ├ (auth)/
@@ -176,7 +239,7 @@ src/routes/
 
 ### During Layout Server Requests
 
-When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. The Supabase client is only initialized if the `sb-access-token` cookie has a non-`null` value.
+When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. It's only initialized as a Supabase client if the `sb-access-token` cookie has a non-`null` value.
 
 ```js
 /* src/routes/(auth)/+layout.server.ts */
