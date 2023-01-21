@@ -2,38 +2,35 @@
 
 A Supabase auth helper for SvelteKit (in beta)
 
-## Configuration
+## Cookie Options
 
-Here is the default config. You can override the defaults by importing `setConfig()` into `hooks.client.ts` and passing in a configuration object.
+You can override the Supakit defaults by importing `setCookieOptions` into `hooks.server.ts` and passing in an object of [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts).
 
+> By default, SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` is set to `lax`.
+
+Supakit Defaults:
 ```js
-const defaults = {
-  supakit: {
-    cookie: {
-      options: {
-        maxAge: 1000 * 60 * 60 * 24 * 265
-      },
-      route: '/supakit'
-    },
-    redirects: {
-      login: '',
-      logout: ''
-    }
-  }
+{ 
+  path: '/',
+  maxAge: 60 * 60 * 24 * 365 
 }
-
-export default defaults
 ```
 
-- `supakit > cookie > options` Takes any of the [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts)
-- `supakit > cookie > route` Is where our `supabaseAuthStateChange()` module sends a post-auth Supabase session, for setting and expiring cookies. If this setting is changed, you have to create the route and logic; but with the default setting Supakit handles it all.
-- `supakit > redirects` If set, the user will be redirected to these pages, using SvelteKit's `goto()`, after they login and/or logout.
+Example:
+```ts
+import { setCookieOptions } from 'supakit'
+
+setCookieOptions({
+  maxAge: 60 * 60 * 24 * 365 * 100,
+  sameSite: 'strict'
+})
+```
 
 ## Caveats
 
 - I've only done local tests with the GitHub OAuth login.
 - You need to provide your own signIn and signOut functions.
-- The Supabase clients rely on `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static.
+- The provided Supabase clients rely on `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static.
 
 ## Install
 
@@ -60,7 +57,7 @@ export const handle = supakitAuth
 ```
 ```html
 <!-- +layout.svelte -->
-<script>
+<script lang="ts">
   import { supabaseBrowserClient, supabaseAuthStateChange } from 'supakit'
 
   supabaseAuthStateChange()
@@ -87,24 +84,6 @@ Supakit will set these three browser cookies. They're automatically updated when
 - `sb-access-token`
 - `sb-refresh-token`
 
-### setConfig()
-
-Allows you to set your own Supakit configuration options.
-
-```js
-/* hooks.client.js */
-import { setConfig } from 'supakit'
-
-setConfig({
-  supakit: {
-    redirects: {
-      login: '/app',
-      logout: '/'
-    }
-  }
-})
-```
-
 ### getSession()
 
 Manages a secure, writable session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature). If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session.user` info (or `null` if logged out).
@@ -113,7 +92,7 @@ Usage example:
 
 ```html
 <!-- +layout.svelte -->
-<script>
+<script lang="ts">
   import { page } from '$app/stores'
   import { getSession } from 'supakit'
 
@@ -124,7 +103,7 @@ Usage example:
 ```
 ```svelte
 <!-- +page.svelte -->
-<script>
+<script lang="ts">
   import { getSession } from 'supakit'
   const session = getSession()
 </script>
@@ -140,13 +119,10 @@ Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a wri
 
 If you pass in a store, the returned Supabase `session.user` info is available in the store immediately after login and logout. This is handy if you don't want to use SvelteKit's `invalidate()` or `invalidateAll()` methods.
 
-If you've configured redirects, this module will execute them with `goto()`. See [configuration](#Configuration).
-
-Here are two usage examples:
-
+Example:
 ```html
 <!-- +layout.svelte -->
-<script>
+<script lang="ts">
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
   import { getSession, supabaseAuthStateChange } from 'supakit'
@@ -159,25 +135,9 @@ Here are two usage examples:
   supabaseAuthStateChange(localSession, ({ event, session }) => {
     /* some post login and/or logout code */
 
-    /* then redirect - assuming you don't set this in the configuration */
+    /* for example, redirects */
     if (event === 'SIGNED_IN') goto('/app')
     if (event === 'SIGNED_OUT') goto('/')
-  })
-</script>
-```
-```html
-<!-- +layout.svelte -->
-<script>
-  import { supabaseAuthStateChange } from 'supakit'
-
-  supabaseAuthStateChange(null, ({ event, session }) => {
-    /* some post login and/or logout code */
-    /**
-     * This is still called, even if you redirect the user post login/logout with the Supakit config.
-     * Of course, this assumes you're redirecting them to a location that inherits whatever layout file
-     * you place the `supabaseAuthStateChange()` module in.
-     */
-    console.log('Hello There World!')
   })
 </script>
 ```
@@ -195,8 +155,7 @@ event.locals.session = {
 
 ### supakitAuth()
 
-Usage examples:
-
+Example:
 ```js
 /* hooks.server.ts */
 import { supakitAuth } from 'supakit'
@@ -204,7 +163,7 @@ import { supakitAuth } from 'supakit'
 export const handle = supakitAuth
 ```
 
-Or if you're also using your own handlers:
+If you're using your own handlers:
 ```js
 /* hooks.server.ts */
 import { sequence } from '@sveltejs/kit/hooks'
@@ -245,21 +204,18 @@ When using a `+layout.server.ts` file, first check for a null `locals.session.us
 /* src/routes/(auth)/+layout.server.ts */
 import { redirect } from '@sveltejs/kit'
 import { supabaseServerClient } from 'supakit'
+import type { LayoutServerLoad } from "./$types"
 
-/**
- * 
- * @type {import('./$types').LayoutServerLoad}
- */
-export const load = async ({ locals }) => {
+export const load = (async ({ locals }) => {
   if (!locals.session.user) throw redirect(307, '/login')
 
   /* grab info to return */
   let { data, error } = await supabaseServerClient.from('table').select('column')
 
   return {
-    stuff: data.stuff
+    stuff: data
   }
-}
+}) satisfies LayoutServerLoad
 ```
 
 ### During Client-side Navigation
@@ -271,12 +227,9 @@ To be clear, the server is called in this process; therefore we have opted out o
 ```js
 /* src/routes/(auth)/app/+page.server.ts */
 import { redirect } from '@sveltejs/kit'
+import type { PageServerLoad } from './$types'
 
-/**
- * 
- * @type {import('./$types').PageServerLoad}
- */
-export const load = async ({ locals }) => {
+export const load = (async ({ locals }) => {
   if (!locals.session.user) throw redirect(307, '/login')
-}
+}) satisfies PageServerLoad
 ```
