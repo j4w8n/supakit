@@ -5,32 +5,8 @@ import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
 
-export type SupakitConfig = {
+export type CookieOptions = {
   [key: string]: any
-  supakit: {
-    cookie: {
-      options: CookieSerializeOptions;
-      route: string;
-    }
-    redirects: {
-      login: string | URL | null;
-      logout: string | URL | null;
-    }
-	}
-}
-
-export type UserConfig = {
-  [key: string]: any
-  supakit: {
-    cookie?: {
-      options?: CookieSerializeOptions;
-      route?: string;
-    }
-    redirects?: {
-      login?: string | URL | null;
-      logout?: string | URL | null;
-    }
-	}
 }
 
 export type StateChangeCallback = ({event, session}: {event: string, session: Session | null}) => void
@@ -41,6 +17,6 @@ export function supabaseAuthStateChange(
   callback?: (({event, session}: {event: string, session: Session | null}) => void) | null
 ): void
 export function getSession(): Writable<User | null>
-export function setConfig(): void
+export function setCookieOptions(value: CookieOptions): void
 export const supabaseBrowserClient: SupabaseClient
 export const supabaseServerClient: SupabaseClient

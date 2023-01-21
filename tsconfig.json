@@ -11,7 +11,8 @@
 		"baseUrl": "./src/lib/",
 		"paths": {
 			"supakit": ["types/index"],
-			"supakit/vite": ["types/index"]
+			"$lib":["src/lib"],
+			"$lib/*":["src/lib/*"]
 		}
 	}
 }

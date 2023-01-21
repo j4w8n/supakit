@@ -1,20 +1,18 @@
-import { getConfig } from '../config/index.js'
+import { getCookieOptions } from '../config/index.js'
 import type { Session } from '@supabase/supabase-js'
 import type { Handle } from "@sveltejs/kit"
 
 export const cookies = (async ({ event, resolve }) => {
-  const config = await getConfig()
-  const cookie_route = config.supakit.cookie.route
-  const cookie_options = config.supakit.cookie.options
-  const session: Session | null = event.request.body ? await event.request.json() : null
-  const cookies_to_set = Object.entries({
-    'sb-user': session?.user,
-    'sb-access-token': session?.access_token,
-    'sb-refresh-token': session?.refresh_token
-  })
+  const cookie_options = await getCookieOptions()
 
-  if (event.url.pathname === cookie_route) {
+  if (event.url.pathname === '/supakit') {
     /* Handle request to the configured cookie route /supakit */
+    const session: Session | null = event.request.body ? await event.request.json() : null
+    const cookies_to_set = Object.entries({
+      'sb-user': session?.user,
+      'sb-access-token': session?.access_token,
+      'sb-refresh-token': session?.refresh_token
+    })
 
     if (event.request.method === 'POST') {
       if (session) {

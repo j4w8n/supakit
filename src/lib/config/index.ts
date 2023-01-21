@@ -1,19 +1,18 @@
 import defaults from './defaults.js'
 import { merge } from './utils.js'
-import type { SupakitConfig, UserConfig } from 'supakit'
+import type { CookieOptions } from 'supakit'
 
-let config: SupakitConfig
+let cookie_options: CookieOptions
 
-export const getConfig = async (): Promise<SupakitConfig> => {
-  console.log(config ?? defaults)
-  return config ?? defaults
+export const getCookieOptions = async (): Promise<CookieOptions> => {
+  return cookie_options ?? defaults
 }
 
-export const setConfig = (value: UserConfig): void => {
-  if (typeof value !== 'object') throw new Error('config must be an object')
+export const setCookieOptions = (value: CookieOptions) => {
+  if (typeof value !== 'object') throw new Error('Cookie options must be an object')
   /**
-   * TODO: validate config before merging
+   * TODO: validate cookie_options before merging
    */
 
-  config = merge(defaults, value)
+  cookie_options = merge(defaults, value)
 }
