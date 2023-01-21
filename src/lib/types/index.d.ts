@@ -17,6 +17,6 @@ export function supabaseAuthStateChange(
   callback?: (({event, session}: {event: string, session: Session | null}) => void) | null
 ): void
 export function getSession(): Writable<User | null>
-export function setCookieOptions(value: CookieOptions): void
+export function setCookieOptions({}: CookieSerializeOptions): void
 export const supabaseBrowserClient: SupabaseClient
 export const supabaseServerClient: SupabaseClient

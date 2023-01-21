@@ -1,14 +1,14 @@
 import defaults from './defaults.js'
 import { merge } from './utils.js'
-import type { CookieOptions } from 'supakit'
+import type { CookieSerializeOptions } from 'cookie'
 
-let cookie_options: CookieOptions
+let cookie_options: CookieSerializeOptions
 
-export const getCookieOptions = async (): Promise<CookieOptions> => {
+export const getCookieOptions = async (): Promise<CookieSerializeOptions> => {
   return cookie_options ?? defaults
 }
 
-export const setCookieOptions = (value: CookieOptions) => {
+export const setCookieOptions = (value: CookieSerializeOptions) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
   /**
    * TODO: validate cookie_options before merging
