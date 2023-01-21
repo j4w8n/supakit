@@ -2,6 +2,7 @@ import { merge } from './utils.js'
 import type { CookieSerializeOptions } from 'cookie'
 
 const defaults = {
+  path: '/',
   maxAge: 60 * 60 * 24 * 365
 }
 let cookie_options: CookieSerializeOptions
