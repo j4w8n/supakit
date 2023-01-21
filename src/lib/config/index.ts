@@ -1,7 +1,9 @@
-import defaults from './defaults.js'
 import { merge } from './utils.js'
 import type { CookieSerializeOptions } from 'cookie'
 
+const defaults = {
+  maxAge: 60 * 60 * 24 * 365
+}
 let cookie_options: CookieSerializeOptions
 
 export const getCookieOptions = async (): Promise<CookieSerializeOptions> => {
@@ -10,9 +12,6 @@ export const getCookieOptions = async (): Promise<CookieSerializeOptions> => {
 
 export const setCookieOptions = (value: CookieSerializeOptions) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
-  /**
-   * TODO: validate cookie_options before merging
-   */
 
   cookie_options = merge(defaults, value)
 }
