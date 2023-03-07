@@ -5,8 +5,8 @@ import type { Handle } from "@sveltejs/kit"
 export const cookies = (async ({ event, resolve }) => {
   const cookie_options = await getCookieOptions()
 
+  /* Handle request to Supakit's cookie route */
   if (event.url.pathname === '/supakit') {
-    /* Handle request to the configured cookie route /supakit */
     const session: Session | null = event.request.body ? await event.request.json() : null
     const cookies_to_set = Object.entries({
       'sb-user': session?.user,
