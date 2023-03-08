@@ -10,6 +10,6 @@ declare namespace App {
 			access_token: string | null
 			refresh_token: string | null
 		};
-		supabase: SupabaseClient
+		supabase: SupabaseClient;
 	}
 }
