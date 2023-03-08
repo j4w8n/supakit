@@ -24,7 +24,7 @@ Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_UR
 After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
 
 ### Server hooks
-This takes care of cookies, setting `event.locals`, and authenticating Supakit's built-in Supabase server client.
+This takes care of cookies and setting `event.locals`.
 
 ```js
 /* hooks.server.ts */
@@ -52,10 +52,16 @@ Do this using Supakit's custom function. You'll need to pass in a Supabase clien
 The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`.
 
 ```js
-/* some server-side file */
-import { supabaseServerClient } from 'supakit'
+/* some server-side load file, for example +layout.server.ts */
+import type { LayoutServerLoad } from "./$types"
 
-const { data, error } = await supabaseServerClient.from('table').select('column')
+export const load = (({ locals: { supabase } }) => {
+  const { data, error } = await supabase.from('table').select('column')
+
+  return {
+    stuff: data
+  }
+}) satisfies LayoutServerLoad
 ```
 
 ### Client-side usage
@@ -75,7 +81,7 @@ The built-in Supabase client relies on `$env/dynamic/public`
 ### Create your own Supabase clients
 By default, Supakit creates a barebones Supabase client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`.
 
-We provide a Supabase server client as well; but you're welcome to use your own.
+We provide a Supabase server client as well, via `event.locals.supabase`; but you're welcome to use your own.
 
 ## Auth State
 Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store, and a callback function which receives the Supabase `event` and `session` for doing additional work after an auth event. You can pass in your own store, or use Supakit's [store](#getSession).
@@ -113,7 +119,7 @@ In a browser environment, Supakit will set three cookies. They're automatically 
 - `sb-access-token`
 - `sb-refresh-token`
 
-Supakit will also set the following `event.locals`. Note the values will always exist; it's a matter of if there's an actual value or just `null`.
+Supakit will also set the following `event.locals`. Note the `session` values will always exist; it's a matter of if there's an actual value or just `null`.
 ```js
 event.locals.session = {
   user: cookies['sb-user'],
