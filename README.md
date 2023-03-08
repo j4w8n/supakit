@@ -1,39 +1,13 @@
 # Supakit
 A Supabase auth helper for SvelteKit. In beta, so breaking changes could happen at any time.
 
+## Terminology
+When we make reference to a "Supabase client" or `supabaseClient`, this is a general term for any non-server client. Therefore, this could also refer to a non-browser client like mobile, web worker, etc.
+
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
-- You can use your own Supabase browser client or Supakit's default.
-- Offers a writable and secure "session" store, which is hydrated after login/logout. This is also helpful if you don't want to use Sveltekit's invalidate features, but it doesn't keep you from using invalidate.
-
-## Cookie Options
-You can set your own options by importing `setCookieOptions` into `hooks.server.ts`, then pass in an object of [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts). Whatever you pass in will be merged with the defaults - overriding when appropriate. This function should be declared outside of the `handle` export.
-
-> By default, SvelteKit sets `httpOnly` and `secure` to `true`; and `sameSite` is set to `lax`.
-
-Supakit Defaults:
-```js
-{ 
-  path: '/',
-  maxAge: 60 * 60 * 24 * 365 // one year
-}
-```
-
-Example:
-```ts
-// import { supakitAuth } from 'supakit'
-import { setCookieOptions } from 'supakit'
-
-setCookieOptions({
-  maxAge: 60 * 60 * 24 * 365 * 100,
-  sameSite: 'strict'
-})
-
-// export const handle = supakitAuth
-```
-
-## Caveats
-- The provided Supabase server client relies on `$env/dynamic/public`. This is to make Supakit compatible with various adapters like netlify, vercel, and static. A new client is provided for every server request.
+- You can use your own Supabase clients or the built-in Supakit clients.
+- Offers a writable and secure "session" store, which is hydrated with Supabase user info after login/logout.
 
 ## Install
 
@@ -43,15 +17,14 @@ setCookieOptions({
 
 `yarn add supakit`
 
-
 ## Setup
 Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ## Bare Minimum
-After setup, the following code will get you going. For more reading and options, checkout out the sections further below.
+After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
 
 ### Setup server hooks
-This takes care of cookies, setting `event.locals`, and authenticating your server-side client.
+This takes care of cookies, setting `event.locals`, and authenticating Supakit's built-in Supabase server client.
 
 ```js
 /* hooks.server.ts */
@@ -61,21 +34,23 @@ export const handle = supakitAuth
 ```
 
 ### Declare onAuthStateChange
-Do this using Supakit's custom function. You'll need to pass in a Supabase browser client as the first parameter.
+Do this using Supakit's custom function. You'll need to pass in a Supabase client as the first parameter.
 
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
-  import { supabaseAuthStateChange, supabaseBrowserClient } from 'supakit'
+  import { supabaseAuthStateChange, supabaseClient } from 'supakit'
 
   /* or use your own client */
-  // import { supabaseBrowserClient } from '$lib/supabase'
+  // import { supabaseClient } from '$lib/supabase'
 
-  supabaseAuthStateChange(supabaseBrowserClient)
+  supabaseAuthStateChange(supabaseClient)
 </script>
 ```
 
 ### Server-side usage
+The built-in Supabase server client relies on `$env/dynamic/public`
+
 ```js
 /* some server-side file */
 import { supabaseServerClient } from 'supakit'
@@ -86,38 +61,52 @@ const { data, error } = await supabaseServerClient.from('table').select('column'
 ### Client-side usage
 ```html
 <!-- some client-side file -->
-
 <script>
-  import { supabaseBrowserClient } from 'supakit'
+  import { supabaseClient } from 'supakit'
 
-  const { data, error } = await supabaseBrowserClient.from('table').select('column')
+  const { data, error } = await supabaseClient.from('table').select('column')
 </script>
 ```
 
-### Create your own Supabase browser client
-This is optional. By default, Supakit creates a generic Supabase browser client for you. However, if you need to use additional client options, then you can declare your own.
+## Further Reading and Options
 
-You still have to pass in your own client as the first parameter to `supabaseAuthStateChange()` (see further below).
+### Create your own Supabase clients
+By default, Supakit creates a barebones Supabase client for you. However, if you need to use additional client options, then you can declare your own. You just need to pass it in as the first parameter to `supabaseAuthStateChange()`.
 
-This goes in a file of your choice. For example, `src/lib/supabase.ts`.
+We provide a Supabase server client as well; but you're welcome to use your own.
 
-```ts
-import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import { env } from '$env/dynamic/public'
+## Auth State
+Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store, and a callback function which receives the Supabase `event` and `session` for doing additional work after an auth event. You can pass in your own store, or use Supakit's [store](#getSession).
 
-export const supabaseBrowserClient = createClient(
-  env.PUBLIC_SUPABASE_URL || '', 
-  env.PUBLIC_SUPABASE_ANON_KEY || '',
-  {
-    auth: {
-      autoRefreshToken: false
-    }
-  }
-)
+If you pass in a store, Supakit will hydrate it with the returned Supabase `session.user` info immediately after login and logout.
+
+`supabaseAuthStateChange(client, store? | null, callback? | null)`
+
+Example:
+```html
+<!-- +layout.svelte -->
+<script lang="ts">
+  import { page } from '$app/stores'
+  import { goto } from '$app/navigation'
+  import { getSession, supabaseAuthStateChange, supabaseClient } from 'supakit'
+
+  /* We're using `localSession` here, to differentiate between Supabase's returned session */
+  const localSession = getSession()
+
+  $localSession = $page.data.session
+
+  supabaseAuthStateChange(supabaseClient, localSession, ({ event, session }) => {
+    /* some post login and/or logout code */
+
+    /* for example, redirects */
+    if (event === 'SIGNED_IN') goto('/app')
+    if (event === 'SIGNED_OUT') goto('/')
+  })
+</script>
 ```
 
 ## Session and Cookies
-Supakit will set three browser cookies. They're automatically updated when the auth session is refreshed.
+In a browser environment, Supakit will set three cookies. They're automatically updated when the auth session is refreshed.
 - `sb-user`
 - `sb-access-token`
 - `sb-refresh-token`
@@ -171,34 +160,30 @@ Usage example:
 {/if}
 ```
 
-## Auth State
-Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store and a callback function which receives the Supabase `event` and `session` for doing additional work post-login/logout. You can pass in your own store, or use Supakit's [store](#getSession). The first parameter, a supabase client, is required. `null` can be used in place of the second parameter if necessary.
+### Cookie Options
+You can set your own options by importing `setCookieOptions` into `hooks.server.ts`, then pass in an object of [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts). Whatever you pass in will be merged with the defaults - overriding when appropriate. This function should be declared outside of the `handle` export.
 
-If you pass in a store, Supakit will hydrate it with the returned Supabase `session.user` info immediately after login and logout.
+> By default, SvelteKit sets `httpOnly` and `secure` to `true`; and `sameSite` is set to `lax`.
 
-If you've opted to use your own browser client, you still have to pass it in as the first parameter.
+Supakit Defaults:
+```js
+{ 
+  path: '/',
+  maxAge: 60 * 60 * 24 * 365 // one year
+}
+```
 
 Example:
-```html
-<!-- +layout.svelte -->
-<script lang="ts">
-  import { page } from '$app/stores'
-  import { goto } from '$app/navigation'
-  import { getSession, supabaseAuthStateChange, supabaseBrowserClient } from 'supakit'
+```ts
+// import { supakitAuth } from 'supakit'
+import { setCookieOptions } from 'supakit'
 
-  /* We're using `localSession` here, to differentiate between Supabase's returned session */
-  const localSession = getSession()
+setCookieOptions({
+  maxAge: 60 * 60 * 24 * 365 * 100,
+  sameSite: 'strict'
+})
 
-  $localSession = $page.data.session
-
-  supabaseAuthStateChange(supabaseBrowserClient, localSession, ({ event, session }) => {
-    /* some post login and/or logout code */
-
-    /* for example, redirects */
-    if (event === 'SIGNED_IN') goto('/app')
-    if (event === 'SIGNED_OUT') goto('/')
-  })
-</script>
+// export const handle = supakitAuth
 ```
 
 ## Protecting Page Routes
@@ -227,7 +212,9 @@ src/routes/
 
 ### During Layout Server Requests
 
-When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`. We do this because without the presence of cookies, `supabaseServerClient` is undefined. It's only initialized as a Supabase client if the `sb-access-token` cookie has a non-`null` value.
+When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`.
+
+> Supakit's built-in Supabase server client is only initialized if `locals.session.access_token` has a non-`null` value.
 
 ```js
 /* src/routes/(auth)/+layout.server.ts */
@@ -249,9 +236,7 @@ export const load = (async ({ locals }) => {
 
 ### During Client-side Navigation
 
-Protect pages using a `+page.server.ts` file for each page route. This is needed because `+layout.server.ts` will not necessarily run on every request. This method works for both client-side and server-side requests, because it causes `handle()` to be called in `hooks.server.ts` for `{route}/__data.json`.
-
-To be clear, the server is called in this process; therefore we have opted out of true client-side navigation. However, this does not cause the page to be server re-rendered; as SvelteKit is only calling the server to re-run the page `load()` function.
+Protect pages using a `+page.server.ts` file for each page route. This is needed because `+layout.server.ts` will not necessarily run on every request. This method works for both client-side and server-side requests, because it causes `handle()` to be called in `hooks.server.ts`.
 
 ```js
 /* src/routes/(auth)/app/+page.server.ts */

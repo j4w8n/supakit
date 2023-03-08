@@ -1,11 +1,11 @@
 import { error } from '@sveltejs/kit'
-import { supabaseBrowserClient } from './client.js'
+import { supabaseClient } from './client.js'
 import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const supabaseAuthStateChange = async (client: SupabaseClient, store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
-  client = client ?? supabaseBrowserClient
+  client = client ?? supabaseClient
   client.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
       try {
