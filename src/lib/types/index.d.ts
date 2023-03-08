@@ -20,4 +20,3 @@ export function supabaseAuthStateChange(
 export function getSession(): Writable<User | null>
 export function setCookieOptions({}: CookieSerializeOptions): void
 export const supabaseClient: SupabaseClient
-export const supabaseServerClient: SupabaseClient

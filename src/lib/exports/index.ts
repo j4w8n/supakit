@@ -1,6 +1,5 @@
 export { supakitAuth } from '../server/auth.js'
 export { supabaseClient } from '../client/client.js'
-export { supabaseServerClient } from '../server/client.js'
 export { supabaseAuthStateChange } from '../client/state.js'
 export { getSession } from '../client/store.js'
 export { setCookieOptions } from '../config/index.js'

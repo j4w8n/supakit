@@ -1,3 +1,5 @@
+import { type SupabaseClient } from "@supabase/supabase-js"
+
 /**
  * Declare Supakit's typings for SvelteKit's interfaces
  */
@@ -7,6 +9,7 @@ declare namespace App {
 			user: string | null
 			access_token: string | null
 			refresh_token: string | null
-		}
+		};
+		supabase: SupabaseClient
 	}
 }
