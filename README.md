@@ -6,7 +6,7 @@ When we make reference to a "Supabase client" or `supabaseClient`, this is a gen
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
-- You can use your own Supabase clients or the built-in Supakit clients.
+- You can use your own Supabase clients or the clients provided by Supakit.
 - Offers a writable and secure "session" store, which is hydrated with Supabase user info after login/logout.
 
 ## Install
@@ -23,7 +23,7 @@ Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_UR
 ## Bare Minimum
 After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
 
-### Setup server hooks
+### Server hooks
 This takes care of cookies, setting `event.locals`, and authenticating Supakit's built-in Supabase server client.
 
 ```js
@@ -49,7 +49,7 @@ Do this using Supakit's custom function. You'll need to pass in a Supabase clien
 ```
 
 ### Server-side usage
-The built-in Supabase server client relies on `$env/dynamic/public`
+The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`.
 
 ```js
 /* some server-side file */
@@ -59,6 +59,8 @@ const { data, error } = await supabaseServerClient.from('table').select('column'
 ```
 
 ### Client-side usage
+The built-in Supabase client relies on `$env/dynamic/public`
+
 ```html
 <!-- some client-side file -->
 <script>
@@ -71,7 +73,7 @@ const { data, error } = await supabaseServerClient.from('table').select('column'
 ## Further Reading and Options
 
 ### Create your own Supabase clients
-By default, Supakit creates a barebones Supabase client for you. However, if you need to use additional client options, then you can declare your own. You just need to pass it in as the first parameter to `supabaseAuthStateChange()`.
+By default, Supakit creates a barebones Supabase client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`.
 
 We provide a Supabase server client as well; but you're welcome to use your own.
 
@@ -90,7 +92,7 @@ Example:
   import { goto } from '$app/navigation'
   import { getSession, supabaseAuthStateChange, supabaseClient } from 'supakit'
 
-  /* We're using `localSession` here, to differentiate between Supabase's returned session */
+  /* We're using `localSession` here, to differentiate between Supabase's returned session and our "session" store. */
   const localSession = getSession()
 
   $localSession = $page.data.session
