@@ -34,11 +34,12 @@
 	"exports": {
 		"./package.json": "./package.json",
 		".": {
-			"types": "./types/index.d.ts",
-			"import": "./exports/index.js"
+			"types": "./dist/types/index.d.ts",
+			"svelte": "./dist/exports/index.js",
+			"import": "./dist/exports/index.js"
 		}
 	},
-	"types": "types/index.d.ts",
+	"types": "dist/types/index.d.ts",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/j4w8n/supakit.git"
@@ -50,5 +51,8 @@
 	"license": "MIT",
 	"engines": {
 		"node": "^16.14 || >=18"
-	}
+	},
+	"files": [
+		"dist"
+	]
 }
