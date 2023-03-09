@@ -10,7 +10,9 @@
 		"strict": true,
 		"baseUrl": "./src/lib/",
 		"paths": {
-			"supakit": ["types/index"]
+			"supakit": ["types/index"],
+			"$lib":["src/lib"],
+			"$lib/*":["src/lib/*"]
 		}
 	}
 }
