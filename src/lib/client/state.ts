@@ -5,8 +5,8 @@ import type { Writable } from 'svelte/store'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const supabaseAuthStateChange = async (client: SupabaseClient, store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
-  client = client ?? supabaseClient
-  client.auth.onAuthStateChange(async (event, session) => {
+  const supabase = client ?? supabaseClient
+  supabase.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
       try {
         await fetch('/supakit', {
