@@ -10,13 +10,16 @@ export const locals = (async ({ event, resolve }) => {
     cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null
   })
 
+  //@ts-ignore
   event.locals.session = {
     user: cookies['sb-user'],
     access_token: cookies['sb-access-token'],
     refresh_token: cookies['sb-refresh-token']
   }
+  //@ts-ignore
   event.locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
+      //@ts-ignore
       headers: { 'Authorization': `Bearer ${event.locals.session.access_token}` }
     },
     auth: {
