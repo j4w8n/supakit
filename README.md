@@ -23,6 +23,26 @@ Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_UR
 ## Bare Minimum
 After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
 
+### Types
+If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file.
+
+```ts
+import { SupabaseClient } from "@supabase/supabase-js"
+
+declare global {
+  namespace App {
+    interface Locals {
+      session: {
+        user: string | null
+        access_token: string | null
+        refresh_token: string | null
+      };
+      supabase: SupabaseClient;
+    }
+  }
+}
+```
+
 ### Server hooks
 This takes care of cookies and setting `event.locals`.
 
