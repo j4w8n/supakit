@@ -17,7 +17,7 @@ export const locals = (async ({ event, resolve }) => {
     refresh_token: cookies['sb-refresh-token']
   }
   //@ts-ignore
-  event.locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
+  event.locals.supabase = event.locals.session.access_token ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
       //@ts-ignore
       headers: { 'Authorization': `Bearer ${event.locals.session.access_token}` }
@@ -27,7 +27,7 @@ export const locals = (async ({ event, resolve }) => {
       autoRefreshToken: false,
       detectSessionInUrl: false
     }
-  })
+  }) : null
 
   return await resolve(event)
 }) satisfies Handle

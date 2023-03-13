@@ -37,7 +37,7 @@ declare global {
         access_token: string | null
         refresh_token: string | null
       };
-      supabase: SupabaseClient;
+      supabase: SupabaseClient | null;
     }
   }
 }
@@ -59,12 +59,9 @@ Do this using Supakit's custom function. You'll need to pass in a Supabase clien
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
-  import { supabaseAuthStateChange, supabaseClient } from 'supakit'
+  import { supabaseAuthStateChange } from 'supakit'
 
-  /* or use your own client */
-  // import { supabaseClient } from '$lib/supabase'
-
-  supabaseAuthStateChange(supabaseClient)
+  supabaseAuthStateChange()
 </script>
 ```
 
@@ -75,11 +72,12 @@ The built-in Supabase server client relies on `$env/dynamic/public`. It also set
 /* some server-side load file, for example +layout.server.ts */
 import type { LayoutServerLoad } from "./$types"
 
-export const load = (({ locals: { supabase } }) => {
+export const load = (({ locals: { session, supabase } }) => {
   const { data, error } = await supabase.from('table').select('column')
 
   return {
-    stuff: data
+    stuff: data,
+    session: session.user
   }
 }) satisfies LayoutServerLoad
 ```
@@ -101,14 +99,14 @@ The built-in Supabase client relies on `$env/dynamic/public`
 ### Create your own Supabase clients
 By default, Supakit creates a barebones Supabase client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`.
 
-We provide a Supabase server client as well, via `event.locals.supabase`; but you're welcome to use your own.
+We provide a Supabase server client as well, via `event.locals.supabase`; but you're welcome to use your own and disregard `event.locals.supabase` and the `Locals` [type](#types).
 
 ## Auth State
-Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a writable store, and a callback function which receives the Supabase `event` and `session` for doing additional work after an auth event. You can pass in your own store, or use Supakit's [store](#getSession).
+Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a custom Supabase client, writable store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event. You can pass in your own store, or use Supakit's [store](#getSession).
 
-If you pass in a store, Supakit will hydrate it with the returned Supabase `session.user` info immediately after login and logout.
+If you pass in a store, Supakit will hydrate it with the user's Supabase info immediately after login and logout.
 
-`supabaseAuthStateChange(client, store? | null, callback? | null)`
+Type: `supabaseAuthStateChange(client | null, store | null, callback | null)`
 
 Example:
 ```html
@@ -116,14 +114,15 @@ Example:
 <script lang="ts">
   import { page } from '$app/stores'
   import { goto } from '$app/navigation'
-  import { getSession, supabaseAuthStateChange, supabaseClient } from 'supakit'
+  import { getSession, supabaseAuthStateChange } from 'supakit'
 
   /* We're using `localSession` here, to differentiate between Supabase's returned session and our "session" store. */
   const localSession = getSession()
 
   $localSession = $page.data.session
 
-  supabaseAuthStateChange(supabaseClient, localSession, ({ event, session }) => {
+  /* using `null` for the client means you want to use Supakit's built-in Supabase client, instead of your own */
+  supabaseAuthStateChange(null, localSession, ({ event, session }) => {
     /* some post login and/or logout code */
 
     /* for example, redirects */
@@ -141,11 +140,15 @@ In a browser environment, Supakit will set three cookies. They're automatically 
 
 Supakit will also set the following `event.locals`. Note the `session` values will always exist; it's a matter of if there's an actual value or just `null`.
 ```js
-event.locals.session = {
-  user: cookies['sb-user'],
-  access_token: cookies['sb-access-token'],
-  refresh_token: cookies['sb-refresh-token']
-}
+/* user info from Supabase */
+event.locals.session.user
+
+event.locals.session.access_token
+
+event.locals.session.refresh_token
+
+/* Supakit's server-side Supabase client */
+event.locals.supabase
 ```
 
 > Supakit uses the special route `/supakit` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
@@ -167,8 +170,7 @@ Usage example:
 
   /**
    * Hydrate the store on subsequent loads.
-   * This assumes you return `session` from a file like +layout.server.ts or +layout.ts.
-   * For example:
+   * This assumes you return `session` from a file like +layout.server.ts or +layout.ts with code such as:
    * return {
    *   session: locals.session.user
    * }
@@ -203,6 +205,8 @@ Supakit Defaults:
 
 Example:
 ```ts
+/* We're showing some commented code here, for context */
+
 // import { supakitAuth } from 'supakit'
 import { setCookieOptions } from 'supakit'
 
@@ -240,24 +244,22 @@ src/routes/
 
 ### During Layout Server Requests
 
-When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client. You can also check `locals.session.access_token` or `locals.session.refresh_token`.
-
-> Supakit's built-in Supabase server client is only initialized if `locals.session.access_token` has a non-`null` value.
+When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client via `locals.supabase`. You can also check `locals.session.access_token` or `locals.session.refresh_token`. If there's no user, then the server client won't be authenticated to make Supabase requests.
 
 ```js
 /* src/routes/(auth)/+layout.server.ts */
 import { redirect } from '@sveltejs/kit'
-import { supabaseServerClient } from 'supakit'
 import type { LayoutServerLoad } from "./$types"
 
-export const load = (async ({ locals }) => {
-  if (!locals.session.user) throw redirect(307, '/login')
+export const load = (async ({ locals: { session, supabase } }) => {
+  if (!session.user) throw redirect(307, '/login')
 
   /* grab info to return */
-  let { data, error } = await supabaseServerClient.from('table').select('column')
+  let { data, error } = await supabase.from('table').select('column')
 
   return {
-    stuff: data
+    stuff: data,
+    session: session.user
   }
 }) satisfies LayoutServerLoad
 ```
@@ -271,7 +273,7 @@ Protect pages using a `+page.server.ts` file for each page route. This is needed
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 
-export const load = (async ({ locals }) => {
-  if (!locals.session.user) throw redirect(307, '/login')
+export const load = (async ({ locals: { sesssion } }) => {
+  if (!session.user) throw redirect(307, '/login')
 }) satisfies PageServerLoad
 ```
