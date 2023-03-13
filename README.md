@@ -27,16 +27,12 @@ After setup, the code in this section will get you working. For more reading and
 If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file.
 
 ```ts
-import { SupabaseClient } from "@supabase/supabase-js"
+import { SupabaseClient, Session } from '@supabase/supabase-js'
 
 declare global {
   namespace App {
     interface Locals {
-      session: {
-        user: string | null
-        access_token: string | null
-        refresh_token: string | null
-      };
+      session: Session;
       supabase: SupabaseClient | null;
     }
   }
@@ -54,7 +50,7 @@ export const handle = supakitAuth
 ```
 
 ### Declare onAuthStateChange
-Do this using Supakit's custom function. You'll need to pass in a Supabase client as the first parameter.
+Do this using Supakit's custom function. 
 
 ```html
 <!-- +layout.svelte -->
@@ -138,7 +134,10 @@ In a browser environment, Supakit will set three cookies. They're automatically 
 - `sb-access-token`
 - `sb-refresh-token`
 
-Supakit will also set the following `event.locals`. Note the `session` values will always exist; it's a matter of if there's an actual value or just `null`.
+> Supakit uses the special route `/supakit` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
+
+Supakit will also set the following `event.locals`:
+
 ```js
 /* user info from Supabase */
 event.locals.session.user
@@ -147,11 +146,14 @@ event.locals.session.access_token
 
 event.locals.session.refresh_token
 
+event.locals.session.expires_in
+
+event.locals.session.token_type
+
 /* Supakit's server-side Supabase client */
 event.locals.supabase
 ```
-
-> Supakit uses the special route `/supakit` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
+> `expires_in` and `token_type` were mainly added to match requirements for Supabase's `Session` type. `expires_in` will get calculated though, and reflect how many seconds are left until your `access_token` expires.
 
 ### getSession
 This is an optional function.
