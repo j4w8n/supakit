@@ -4,7 +4,7 @@ import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export const supabaseAuthStateChange = async (client: SupabaseClient, store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
+export const supabaseAuthStateChange = async (client: SupabaseClient | null, store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
   const supabase = client ?? supabaseClient
   supabase.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
