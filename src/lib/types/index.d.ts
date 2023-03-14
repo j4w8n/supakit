@@ -1,5 +1,3 @@
-import './ambient'
-
 import type { User, Session, SupabaseClient } from '@supabase/supabase-js'
 import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
