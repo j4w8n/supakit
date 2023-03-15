@@ -1,4 +1,4 @@
-import { merge } from './utils.js'
+import { merge } from '../utils.js'
 import type { CookieSerializeOptions } from 'cookie'
 
 const defaults = {
