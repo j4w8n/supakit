@@ -6,8 +6,8 @@ When we make reference to a "Supabase client" or `supabaseClient`, this is a gen
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
-- You can use your own Supabase clients or the clients provided by Supakit.
-- Offers a writable and secure "session" store, which is hydrated with Supabase user info after login/logout.
+- You can use your own custom Supabase clients (browser, server, etc) or the clients provided by Supakit.
+- Offers a writable and secure "session" store, which is hydrated with Supabase user info after `SIGNED_IN`, `SIGNED_OUT` and `USER_UPDATED` events.
 
 ## Install
 
@@ -119,7 +119,7 @@ Example:
 
   /* using `null` for the client means you want to use Supakit's built-in Supabase client, instead of your own */
   supabaseAuthStateChange(null, localSession, ({ event, session }) => {
-    /* some post login and/or logout code */
+    /* post auth change code */
 
     /* for example, redirects */
     if (event === 'SIGNED_IN') goto('/app')
@@ -153,15 +153,16 @@ event.locals.session.token_type
 /* Supakit's server-side Supabase client */
 event.locals.supabase
 ```
-> `expires_in` and `token_type` were mainly added to match requirements for Supabase's `Session` type. `expires_in` will get calculated though, and reflect how many seconds are left until your `access_token` expires.
+> `expires_in` and `token_type` were mainly added to match requirements for Supabase's `Session` type. `expires_in` will get calculated though, and reflect how many seconds are left until your `access_token` expires. Keep in mind this value is only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on it for realtime info.
 
 ### getSession
 This is an optional function.
 
-Manages a secure, writable session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature). If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session.user` info post-login (or `null` if logged out).
+Manages a secure, writable session store (with Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature). It has nothing to do with Supabase's `auth.getSession()` call. If you pass a store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session.user` info after the `SIGNED_IN`, `SIGNED_OUT` and `USER_UPDATED` events.
 
-Usage example:
+Example:
 
+Setup
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
@@ -176,10 +177,12 @@ Usage example:
    * return {
    *   session: locals.session.user
    * }
+   * !!! do not return the access_token or refresh_token
    */
   $session = $page.data.session
 </script>
 ```
+Page Usage
 ```svelte
 <!-- +page.svelte -->
 <script lang="ts">
