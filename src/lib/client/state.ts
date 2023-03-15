@@ -21,6 +21,9 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
       await setCookie('POST', JSON.stringify(session))
       if (store && session) store.set(session.user)
     }
+    if (event === 'USER_UPDATED') {
+      if (store && session) store.set(session.user)
+    }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
       if (store) store.set(null)
