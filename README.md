@@ -79,7 +79,7 @@ export const load = (({ locals: { session, supabase } }) => {
 ```
 
 ### Client-side usage
-The built-in Supabase client relies on `$env/dynamic/public`
+The built-in Supabase client relies on `$env/dynamic/public`. It also sets `persistSession` to false, as the default localStorage is easily vulernable to XSS attacks.
 
 ```html
 <!-- some client-side file -->
@@ -210,17 +210,14 @@ Supakit Defaults:
 
 Example:
 ```ts
-/* We're showing some commented code here, for context */
-
-// import { supakitAuth } from 'supakit'
-import { setCookieOptions } from 'supakit'
+import { setCookieOptions, supakitAuth } from 'supakit'
 
 setCookieOptions({
   maxAge: 60 * 60 * 24 * 365 * 100,
   sameSite: 'strict'
 })
 
-// export const handle = supakitAuth
+export const handle = supakitAuth
 ```
 
 ## Protecting Page Routes
