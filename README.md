@@ -7,7 +7,7 @@ When we make reference to a "Supabase client" or `supabaseClient`, this is a gen
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
 - You can use your own custom Supabase clients (browser, server, etc) or the clients provided by Supakit.
-- Offers a writable and secure "session" store, which is hydrated with Supabase user info after `SIGNED_IN`, `SIGNED_OUT` and `USER_UPDATED` events.
+- Offers a writable and secure "session" store, which is hydrated with Supabase user info after `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
 
 ## Install
 
@@ -175,9 +175,8 @@ Setup
    * Hydrate the store on subsequent loads.
    * This assumes you return `session` from a file like +layout.server.ts or +layout.ts with code such as:
    * return {
-   *   session: locals.session.user
+   *   session: locals.session
    * }
-   * !!! do not return the access_token or refresh_token
    */
   $session = $page.data.session
 </script>
@@ -275,7 +274,7 @@ Protect pages using a `+page.server.ts` file for each page route. This is needed
 import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 
-export const load = (async ({ locals: { sesssion } }) => {
+export const load = (async ({ locals: { session } }) => {
   if (!session.user) throw redirect(307, '/login')
 }) satisfies PageServerLoad
 ```
