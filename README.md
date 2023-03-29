@@ -8,6 +8,7 @@ When we make reference to a "Supabase client" or `supabaseClient`, this is a gen
 - Uses `httpOnly` cookies, for tighter security against XSS.
 - You can use your own custom Supabase clients (browser, server, etc) or the clients provided by Supakit.
 - Offers a writable and secure "session" store, which is hydrated with Supabase user info after `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
+- Sets the server-side client's session, allowing you to use things like `...auth.updateUser()` on the server-side.
 
 ## Install
 
@@ -24,7 +25,7 @@ Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_UR
 After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
 
 ### Types
-If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file.
+If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file. We also recommend adding `session` to `PageData`, since this is commonly returned.
 
 ```ts
 import { SupabaseClient, Session } from '@supabase/supabase-js'
@@ -35,12 +36,15 @@ declare global {
       session: Session;
       supabase: SupabaseClient | null;
     }
+    interface PageData {
+      session: Session;
+    }
   }
 }
 ```
 
 ### Server hooks
-This takes care of cookies and setting `event.locals`.
+This takes care of cookies and setting `event.locals` - including setting the server-side client's session.
 
 ```js
 /* hooks.server.ts */
@@ -73,7 +77,7 @@ export const load = (({ locals: { session, supabase } }) => {
 
   return {
     stuff: data,
-    session: session.user
+    session
   }
 }) satisfies LayoutServerLoad
 ```
