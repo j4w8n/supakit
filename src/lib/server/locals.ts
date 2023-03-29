@@ -5,7 +5,7 @@ import { decodeBase64URL } from '../utils.js'
 
 export const locals = (async ({ event, resolve }) => {
   const cookie_list = ['sb-user','sb-access-token','sb-refresh-token']
-  let cookies: { [key: string]: string } = {}
+  let cookies: { [key: string]: any } = {}
 
   cookie_list.forEach(name => {
     cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null
@@ -14,19 +14,16 @@ export const locals = (async ({ event, resolve }) => {
   // grab token info
   const token = cookies['sb-access-token'] ? JSON.parse(decodeBase64URL(cookies['sb-access-token'].split('.')[1])) : null
 
-  //@ts-ignore
   event.locals.session = {
     user: cookies['sb-user'],
     access_token: cookies['sb-access-token'],
     refresh_token: cookies['sb-refresh-token'],
-    expires_in: token ? Math.floor(token.exp - (Date.now()/1000)) : null,
+    expires_in: token ? Math.floor(token.exp - (Date.now()/1000)) : 0,
     token_type: 'bearer'
   }
 
-  //@ts-ignore
   event.locals.supabase = event.locals.session.access_token ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
-      //@ts-ignore
       headers: { 'Authorization': `Bearer ${event.locals.session.access_token}` }
     },
     auth: {
@@ -35,6 +32,13 @@ export const locals = (async ({ event, resolve }) => {
       detectSessionInUrl: false
     }
   }) : null
+
+  if (event.locals.supabase) {
+    await event.locals.supabase.auth.setSession({ 
+      access_token: event.locals.session.access_token, 
+      refresh_token: event.locals.session.refresh_token 
+    })
+  }
 
   return await resolve(event)
 }) satisfies Handle
