@@ -1,13 +1,10 @@
 # Supakit
 A Supabase auth helper for SvelteKit. For use with the Supabase javascript client. In beta, so breaking changes could happen at any time.
 
-## Terminology
-When we make reference to a "Supabase client" or `supabaseClient`, this is a general term for any non-server client. Therefore, this could also refer to a non-browser client like mobile, web worker, etc.
-
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
-- You can use your own custom Supabase clients (browser, server, etc) or the clients provided by Supakit.
-- Offers a secure client-side "session" store, which is hydrated with Supabase session info after `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This helps with immediate reactivity, especially after user signin and signout.
+- You can use your own custom Supabase clients or the clients provided by Supakit.
+- Offers a secure client-side "session" store, which is hydrated with Supabase session info after `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This helps with immediate reactivity after these events occur.
 - Saves the `provider_token` and `provider_refresh_token` in `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 
 ## Install
@@ -83,7 +80,7 @@ export const load = (({ locals: { session, supabase } }) => {
 ```
 
 ### Client-side usage
-The built-in Supabase client relies on `$env/dynamic/public`. It also sets `persistSession` to false, as the default localStorage is easily vulernable to XSS attacks.
+The built-in Supabase client relies on `$env/dynamic/public`. It also sets `persistSession` to false, as browser localStorage and non-`httpOnly` cookies are vulernable to XSS attacks.
 
 ```html
 <!-- some client-side file -->
