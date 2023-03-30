@@ -5,16 +5,21 @@ import { decodeBase64URL } from '../utils.js'
 
 export const locals = (async ({ event, resolve }) => {
   const session: Session | null = event.cookies.get('sb-session') ? JSON.parse(event.cookies.get('sb-session') || '') : null
+  const provider_token: string = event.cookies.get('sb-provider-token') ? JSON.parse(event.cookies.get('sb-provider-token') || '') : null
+  const provider_refresh_token: string = event.cookies.get('sb-provider-refresh-token') ? JSON.parse(event.cookies.get('sb-provider-refresh-token') || '') : null
 
   // get jwt info
   const token = session ? JSON.parse(decodeBase64URL(session.access_token.split('.')[1])) : null
   
   event.locals.session = session ? {
-    user: session.user,
+    provider_token,
+    provider_refresh_token,
     access_token: session.access_token,
     refresh_token: session.refresh_token,
     expires_in: Math.floor(token.exp - (Date.now()/1000)),
-    token_type: 'bearer'
+    expires_at: token.exp,
+    token_type: 'bearer',
+    user: session.user
   } : null
 
   event.locals.supabase = session ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
