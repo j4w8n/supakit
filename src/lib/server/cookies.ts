@@ -15,7 +15,7 @@ export const cookies = (async ({ event, resolve }) => {
 
         response.headers.append('set-cookie', event.cookies.serialize('sb-session', JSON.stringify(session), cookie_options))
         if (session.provider_token) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-token', JSON.stringify(session.provider_token), cookie_options))
-        if (session.provider_refresh_token) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-token', JSON.stringify(session.provider_refresh_token), cookie_options))
+        if (session.provider_refresh_token) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-refresh-token', JSON.stringify(session.provider_refresh_token), cookie_options))
         return response
       } else {
         return new Response('Expecting JSON body, but body was null.', { status: 400 })
