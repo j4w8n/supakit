@@ -105,7 +105,11 @@ If you pass in a store, Supakit will hydrate it with the Supabase session after 
 
 Type: 
 ```ts
-supabaseAuthStateChange(client | null | undefined, store | null | undefined, callback | null | undefined)
+supabaseAuthStateChange(
+  client?: SupabaseClient | null, 
+  store?: Writable<Session | null> | null, 
+  callback?: (({ event, session }: { event: string, session: Session | null }) => void) | null
+)
 ```
 
 Example:
@@ -116,14 +120,20 @@ Example:
   import { goto } from '$app/navigation'
   import { getSession, supabaseAuthStateChange } from 'supakit'
 
-  /* We're using `localSession` here, to differentiate between Supabase's returned session and our "session" store. */
+  /** 
+   * We're using `localSession` here, 
+   * to differentiate between Supabase's returned session and our "session" store.
+   */
   const localSession = getSession()
 
   $localSession = $page.data.session
 
-  /* using `null` for the client means you want to use Supakit's built-in Supabase client, instead of your own */
+  /**
+   * Using `null` for the client means you want to use Supakit's built-in Supabase client, 
+   * instead of your own 
+   */
   supabaseAuthStateChange(null, localSession, ({ event, session }) => {
-    /* post auth change code */
+    /* post auth event code */
 
     /* for example, redirects */
     if (event === 'SIGNED_IN') goto('/app')
@@ -183,7 +193,8 @@ Setup
 
   /**
    * Hydrate the store on subsequent loads.
-   * This assumes you return `session` from a file like +layout.server.ts or +layout.ts with code like:
+   * This assumes you return `session` from a file 
+   * like +layout.server.ts or +layout.ts with code such as:
    * return {
    *   session: event.locals.session
    * }
