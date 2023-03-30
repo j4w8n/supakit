@@ -1,5 +1,5 @@
 # Supakit
-A Supabase auth helper for SvelteKit. For use with the Supabase javascript client. In beta, so breaking changes could happen at any time.
+A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only suitable for environments where access to cookies is available. In beta, so breaking changes could happen at any time.
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookies, for tighter security against XSS.
