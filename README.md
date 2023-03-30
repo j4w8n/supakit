@@ -8,8 +8,7 @@ When we make reference to a "Supabase client" or `supabaseClient`, this is a gen
 - Uses `httpOnly` cookies, for tighter security against XSS.
 - You can use your own custom Supabase clients (browser, server, etc) or the clients provided by Supakit.
 - Offers a secure client-side "session" store, which is hydrated with Supabase session info after `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This helps with immediate reactivity, especially after user signin and signout.
-- Easily make server-side calls, like `supabase.auth.refreshSession()` or `supabase.auth.updateUser()`, without having to first call `supabase.auth.setSession(access_token, refresh_token)` yourself. Requires use of Supakit's server-side client. Be aware that any calls which would normally fire an `onAuthStateChange` event will not be received by the client-side Supabase client.
-- Saves the `provider_token` and `provider_refresh_token` in `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you; but is hopefully saving you a step when refreshing them on your own.
+- Saves the `provider_token` and `provider_refresh_token` in `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 
 ## Install
 
