@@ -85,16 +85,16 @@ The built-in Supabase client relies on `$env/dynamic/public`. It also sets `pers
 ```html
 <!-- some client-side file -->
 <script>
-  import { supabaseClient } from 'supakit'
+  import { supabase } from 'supakit'
 
-  const { data, error } = await supabaseClient.from('table').select('column')
+  const { data, error } = await supabase.from('table').select('column')
 </script>
 ```
 
 ## Further Reading and Options
 
 ### Create your own Supabase clients
-By default, Supakit creates a Supabase client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`.
+By default, Supakit creates a Supabase browser client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`.
 
 We provide a Supabase server client as well, via `event.locals.supabase`; but you're welcome to use your own and disregard `event.locals.supabase` and the `Locals` [type](#types).
 
@@ -130,7 +130,7 @@ Example:
 ```
 
 ### Session and Cookies
-In a browser environment, Supakit will set upto three cookies. `sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event.
+Supakit will set upto three cookies. `sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be updated by you after you refresh them.
 - `sb-session`
 - `sb-provider-token`
 - `sb-provider-refresh-token`
