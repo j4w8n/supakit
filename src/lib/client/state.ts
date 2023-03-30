@@ -2,9 +2,9 @@ import { error } from '@sveltejs/kit'
 import { supabaseClient } from './client.js'
 import type { StateChangeCallback } from 'supakit'
 import type { Writable } from 'svelte/store'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient, Session } from '@supabase/supabase-js'
 
-export const supabaseAuthStateChange = async (client: SupabaseClient | null = null, store: Writable<any> | null = null, callback: StateChangeCallback | null = null) => {
+export const supabaseAuthStateChange = async (client: SupabaseClient | null = null, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
   const supabase = client ?? supabaseClient
   supabase.auth.onAuthStateChange(async (event, session) => {
     const setCookie = async (method: string, body: string | null = null) => {
