@@ -18,7 +18,7 @@ export const locals = (async ({ event, resolve }) => {
     user: cookies['sb-user'],
     access_token: cookies['sb-access-token'],
     refresh_token: cookies['sb-refresh-token'],
-    expires_in: token ? Math.floor(token.exp - (Date.now()/1000)) : 0,
+    expires_in: Math.floor(token.exp - (Date.now()/1000)),
     token_type: 'bearer'
   } : null
 
