@@ -1,23 +1,19 @@
 import type { Handle } from "@sveltejs/kit"
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type Session } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 import { decodeBase64URL } from '../utils.js'
 
 export const locals = (async ({ event, resolve }) => {
-  const cookie_list = ['sb-user','sb-access-token','sb-refresh-token']
-  let cookies: { [key: string]: any } = {}
+  const cookie: Session = event.cookies.get('sb-session') ? JSON.parse(event.cookies.get('sb-session') || '') : null
+  console.log('cookie', cookie)
 
-  cookie_list.forEach(name => {
-    cookies[name] = event.cookies.get(name) ? JSON.parse(event.cookies.get(name) || '') : null
-  })
-
-  // grab token info
-  const token = cookies['sb-access-token'] ? JSON.parse(decodeBase64URL(cookies['sb-access-token'].split('.')[1])) : null
-
+  // get jwt info
+  const token = cookie ? JSON.parse(decodeBase64URL(cookie.access_token.split('.')[1])) : null
+  
   event.locals.session = token ? {
-    user: cookies['sb-user'],
-    access_token: cookies['sb-access-token'],
-    refresh_token: cookies['sb-refresh-token'],
+    user: cookie.user,
+    access_token: cookie.access_token,
+    refresh_token: cookie.refresh_token,
     expires_in: Math.floor(token.exp - (Date.now()/1000)),
     token_type: 'bearer'
   } : null

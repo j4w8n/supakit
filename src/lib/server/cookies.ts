@@ -8,18 +8,12 @@ export const cookies = (async ({ event, resolve }) => {
   /* Handle request to Supakit's cookie route */
   if (event.url.pathname === '/supakit') {
     const session: Session | null = event.request.body ? await event.request.json() : null
-    const cookies_to_set = Object.entries({
-      'sb-user': session?.user,
-      'sb-access-token': session?.access_token,
-      'sb-refresh-token': session?.refresh_token
-    })
 
     if (event.request.method === 'POST') {
       if (session) {
         const response = new Response(null)
-        cookies_to_set.forEach(([name, value]) => {
-          response.headers.append('set-cookie', event.cookies.serialize(name, JSON.stringify(value), cookie_options))
-        })
+
+        response.headers.append('set-cookie', event.cookies.serialize('sb-session', JSON.stringify(session), cookie_options))
         return response
       } else {
         return new Response('Expecting JSON body, but body was null.', { status: 400 })
@@ -30,9 +24,8 @@ export const cookies = (async ({ event, resolve }) => {
         ...cookie_options,
         maxAge: -1
       }
-      cookies_to_set.forEach(([name]) => {
-        response.headers.append('set-cookie', event.cookies.serialize(name, '', expire_options))
-      })
+      
+      response.headers.append('set-cookie', event.cookies.serialize('sb-session', '', expire_options))
       return response
     }
   }
