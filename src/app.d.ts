@@ -8,7 +8,7 @@ import { SupabaseClient, Session } from "@supabase/supabase-js"
 declare global {
 	namespace App {
 		interface Locals {
-			session: Session;
+			session: Session | null;
 			supabase: SupabaseClient | null;
 		}
 		// interface PageData {}

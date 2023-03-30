@@ -14,15 +14,15 @@ export const locals = (async ({ event, resolve }) => {
   // grab token info
   const token = cookies['sb-access-token'] ? JSON.parse(decodeBase64URL(cookies['sb-access-token'].split('.')[1])) : null
 
-  event.locals.session = {
+  event.locals.session = token ? {
     user: cookies['sb-user'],
     access_token: cookies['sb-access-token'],
     refresh_token: cookies['sb-refresh-token'],
     expires_in: token ? Math.floor(token.exp - (Date.now()/1000)) : 0,
     token_type: 'bearer'
-  }
+  } : null
 
-  event.locals.supabase = event.locals.session.access_token ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
+  event.locals.supabase = event.locals.session ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
       headers: { 'Authorization': `Bearer ${event.locals.session.access_token}` }
     },
@@ -33,7 +33,7 @@ export const locals = (async ({ event, resolve }) => {
     }
   }) : null
 
-  if (event.locals.supabase) {
+  if (event.locals.supabase && event.locals.session) {
     await event.locals.supabase.auth.setSession({ 
       access_token: event.locals.session.access_token, 
       refresh_token: event.locals.session.refresh_token 
