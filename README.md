@@ -41,7 +41,7 @@ declare global {
 ```
 
 ### Server hooks
-This takes care of cookies and setting `event.locals` - including setting the server-side client's session.
+This takes care of cookies and setting `event.locals` - including setting the server-side client's session with the currently logged in user.
 
 ```js
 /* hooks.server.ts */
@@ -63,7 +63,7 @@ Do this using Supakit's custom function.
 ```
 
 ### Server-side usage
-The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`.
+The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client via `event.locals.supabase.auth.setSession()`; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the client-side Supabase client.
 
 ```js
 /* some server-side load file, for example +layout.server.ts */
@@ -103,7 +103,10 @@ Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a cus
 
 If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
 
-Type: `supabaseAuthStateChange(client | null | undefined, store | null | undefined, callback | null | undefined)`
+Type: 
+```ts
+supabaseAuthStateChange(client | null | undefined, store | null | undefined, callback | null | undefined)
+```
 
 Example:
 ```html
@@ -130,10 +133,13 @@ Example:
 ```
 
 ### Session and Cookies
-Supakit will set upto three cookies. `sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be updated by you after you refresh them.
+Supakit will set upto three cookies.
+
 - `sb-session`
 - `sb-provider-token`
 - `sb-provider-refresh-token`
+
+`sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be updated by you after you refresh them.
 
 > Supakit uses the special route `/supakit` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
 
@@ -155,7 +161,7 @@ event.locals.session = {
 /* Supakit's server-side Supabase client */
 event.locals.supabase
 ```
-> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. Keep in mind this value is only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on it for realtime info.
+> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on it for realtime info.
 
 ### getSession
 This is an optional function.
@@ -201,7 +207,7 @@ Page Usage
 ### Cookie Options
 You can set your own options by importing `setCookieOptions` into `hooks.server.ts`, then pass in an object of [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts). Whatever you pass in will be merged with the defaults - overriding when appropriate. This function should be declared outside of the `handle` export.
 
-> By default, SvelteKit sets `httpOnly` and `secure` to `true`; and `sameSite` is set to `lax`.
+> By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
 
 Supakit Defaults:
 ```js
@@ -227,7 +233,8 @@ export const handle = supakitAuth
 
 Sometimes you want a user to be logged in, in order to access certain pages.
 
-Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.ts` file. However, this isn't required unless you need shared data across pages under the group.
+Here is our example file structure, where routes `/admin` and `/app` should be protected. We place these routes under a layout group, so they can share a `+layout.server.ts` file. However, this isn't strictly required unless you need shared data across pages under the group.
+
 ```shell
 src/routes/
 ├ (auth)/
