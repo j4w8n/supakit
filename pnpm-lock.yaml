@@ -1,10 +1,10 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@supabase/supabase-js': ^2.10.0
+  '@supabase/supabase-js': ^2.13.0
   '@sveltejs/adapter-auto': ^2.0.0
   '@sveltejs/kit': ^1.10.0
-  '@sveltejs/package': ^2.0.2
+  '@sveltejs/package': ^2.0.0
   '@sveltejs/vite-plugin-svelte': ^2.0.3
   '@types/cookie': ^0.5.1
   '@types/node': ^18.14.6
@@ -13,7 +13,7 @@ specifiers:
   vite: ^4.1.4
 
 devDependencies:
-  '@supabase/supabase-js': 2.10.0
+  '@supabase/supabase-js': 2.13.0
   '@sveltejs/adapter-auto': 2.0.0_@sveltejs+kit@1.10.0
   '@sveltejs/kit': 1.10.0_svelte@3.55.1+vite@4.1.4
   '@sveltejs/package': 2.0.2_4x7phaipmicbaooxtnresslofa
@@ -240,8 +240,8 @@ packages:
       - encoding
     dev: true
 
-  /@supabase/gotrue-js/2.13.0:
-    resolution: {integrity: sha512-NFBHuHNUn94mP/zOQzsp1k2PtwV55Vhf6ZbTzmMpiUvIRlXhVteZcdfdoAQDIBrdxOdL7F54NFp1gIupPZka6g==}
+  /@supabase/gotrue-js/2.16.0:
+    resolution: {integrity: sha512-k7curH5xxnQmUiG8AeFW7KEJST99vhFnBCidWFhuSSyLP1Ja8Ix3g4bmLUv209mhX8LmAaDMGKNQs8gG0MOKCw==}
     dependencies:
       cross-fetch: 3.1.5
     transitivePeerDependencies:
@@ -256,10 +256,11 @@ packages:
       - encoding
     dev: true
 
-  /@supabase/realtime-js/2.6.0:
-    resolution: {integrity: sha512-tOVulMobhpxyDuu8VIImpL8FXmZOKsGNOSyS5ihJdj2xYmPPvYG+D2J51Ewfl+MFF65tweiB6p9N9bNIW1cDNA==}
+  /@supabase/realtime-js/2.7.1:
+    resolution: {integrity: sha512-WC0yPArBF/wPXwxKWTrRSMWWnFQCbhhUsX0u42x4OqUdDJtow6rzvDIZHWFZLh85UUBYIQ2++AabSNgzd3ubQg==}
     dependencies:
       '@types/phoenix': 1.5.5
+      '@types/websocket': 1.0.5
       websocket: 1.0.34
     transitivePeerDependencies:
       - supports-color
@@ -273,13 +274,13 @@ packages:
       - encoding
     dev: true
 
-  /@supabase/supabase-js/2.10.0:
-    resolution: {integrity: sha512-/vkpPxGDyLfTASWnVHL8vdgQxn9SX/Cs+BotTxFhLSIeGFSazC6rpQSMKu6RqzO7gjBD1KqTv0h3auWfClWs+Q==}
+  /@supabase/supabase-js/2.13.0:
+    resolution: {integrity: sha512-D37k5BIwYa4/XNe9eEPz8W0L8MS5w0j16wFDd0twClJC/z+wA4tbcaeWm5Q8IsMeExPa0LrdSrQwPI5bBg6trg==}
     dependencies:
       '@supabase/functions-js': 2.1.0
-      '@supabase/gotrue-js': 2.13.0
+      '@supabase/gotrue-js': 2.16.0
       '@supabase/postgrest-js': 1.4.1
-      '@supabase/realtime-js': 2.6.0
+      '@supabase/realtime-js': 2.7.1
       '@supabase/storage-js': 2.3.1
       cross-fetch: 3.1.5
     transitivePeerDependencies:
@@ -369,6 +370,12 @@ packages:
 
   /@types/phoenix/1.5.5:
     resolution: {integrity: sha512-1eWWT19k0L4ZiTvdXjAvJ9KvW0B8SdiVftQmFPJGTEx78Q4PCSIQDpz+EfkFVR1N4U9gREjlW4JXL8YCIlY0bw==}
+    dev: true
+
+  /@types/websocket/1.0.5:
+    resolution: {integrity: sha512-NbsqiNX9CnEfC1Z0Vf4mE1SgAJ07JnRYcNex7AJ9zAVzmiGHmjKFEk7O4TJIsgv2B1sLEb6owKFZrACwdYngsQ==}
+    dependencies:
+      '@types/node': 18.14.6
     dev: true
 
   /anymatch/3.1.3:
