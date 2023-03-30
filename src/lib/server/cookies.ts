@@ -14,6 +14,8 @@ export const cookies = (async ({ event, resolve }) => {
         const response = new Response(null)
 
         response.headers.append('set-cookie', event.cookies.serialize('sb-session', JSON.stringify(session), cookie_options))
+        if (session.provider_token) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-token', JSON.stringify(session.provider_token), cookie_options))
+        if (session.provider_refresh_token) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-token', JSON.stringify(session.provider_refresh_token), cookie_options))
         return response
       } else {
         return new Response('Expecting JSON body, but body was null.', { status: 400 })
@@ -24,8 +26,10 @@ export const cookies = (async ({ event, resolve }) => {
         ...cookie_options,
         maxAge: -1
       }
-      
+
       response.headers.append('set-cookie', event.cookies.serialize('sb-session', '', expire_options))
+      if (event.cookies.get('sb-provider-token')) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-token', '', expire_options))
+      if (event.cookies.get('sb-provider-refresh-token')) response.headers.append('set-cookie', event.cookies.serialize('sb-provider-refresh-token', '', expire_options))
       return response
     }
   }
