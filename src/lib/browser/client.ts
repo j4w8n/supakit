@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 
 export const supabase: SupabaseClient = createClient(
