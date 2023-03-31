@@ -17,9 +17,9 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
         throw error(500, err)
       }
     }
-    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
       await setCookie('POST', JSON.stringify(session))
-      if (store && session) store.set(session)
+      if (store) store.set(session)
     }
     if (event === 'SIGNED_OUT') {
       await setCookie('DELETE')
