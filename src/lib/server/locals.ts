@@ -22,19 +22,16 @@ export const locals = (async ({ event, resolve }) => {
     user: session.user
   } : null
 
-  event.locals.supabase = session ? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
-    global: {
-      headers: { 'Authorization': `Bearer ${session.access_token}` }
-    },
+  event.locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
       detectSessionInUrl: false
     }
-  }) : null
+  })
 
   if (session) {
-    await event.locals.supabase!.auth.setSession({ 
+    await event.locals.supabase.auth.setSession({ 
       access_token: session.access_token, 
       refresh_token: session.refresh_token 
     })
