@@ -17,7 +17,13 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
         throw error(500, err)
       }
     }
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session) {
+    const { data } = await supabaseClient.auth.getSession()
+
+    /**
+     * extra expires_at checks ensure that we don't set cookies when calling setSession(session) below;
+     * since that call fires it's own SIGNED_IN event and the session would be the same.
+     */
+    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || (event === 'SIGNED_IN' && session?.expires_at !== data.session?.expires_at)) {
       await setCookie('POST', JSON.stringify(session))
       if (store) store.set(session)
     }
@@ -25,7 +31,7 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
       await setCookie('DELETE')
       if (store) store.set(null)
     }
-    if (event === 'INITIAL_SESSION' && session) supabaseClient.auth.setSession(session)
+    if (event === 'INITIAL_SESSION' && session) await supabaseClient.auth.setSession(session)
 
     if (callback) callback({event, session})
   })
