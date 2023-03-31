@@ -25,7 +25,7 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
     }
 
     /**
-     * extra expires_at checks ensure that we don't set cookies when calling setSession(session) above;
+     * expires_at check ensures that we don't set cookies when calling setSession(session) above;
      * since that call fires it's own SIGNED_IN event and the session would be the same.
      */
     if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || (event === 'SIGNED_IN' && session?.expires_at !== initial_session?.expires_at)) {
