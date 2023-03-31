@@ -7,6 +7,7 @@ import type { SupabaseClient, Session } from '@supabase/supabase-js'
 export const supabaseAuthStateChange = async (client: SupabaseClient | null = null, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
   const supabaseClient = client ?? supabase
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    let initial_session = null
     const setCookie = async (method: string, body: string | null = null) => {
       try {
         await fetch('/supakit', {
@@ -17,13 +18,17 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
         throw error(500, err)
       }
     }
-    const { data } = await supabaseClient.auth.getSession()
+    
+    if (event === 'INITIAL_SESSION' && session) {
+      initial_session = session
+      await supabaseClient.auth.setSession(session)
+    }
 
     /**
-     * extra expires_at checks ensure that we don't set cookies when calling setSession(session) below;
+     * extra expires_at checks ensure that we don't set cookies when calling setSession(session) above;
      * since that call fires it's own SIGNED_IN event and the session would be the same.
      */
-    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || (event === 'SIGNED_IN' && session?.expires_at !== data.session?.expires_at)) {
+    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || (event === 'SIGNED_IN' && session?.expires_at !== initial_session?.expires_at)) {
       await setCookie('POST', JSON.stringify(session))
       if (store) store.set(session)
     }
@@ -31,7 +36,6 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
       await setCookie('DELETE')
       if (store) store.set(null)
     }
-    if (event === 'INITIAL_SESSION' && session) await supabaseClient.auth.setSession(session)
 
     if (callback) callback({event, session})
   })
