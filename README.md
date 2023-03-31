@@ -57,8 +57,11 @@ Do this using Supakit's custom function.
 <!-- +layout.svelte -->
 <script lang="ts">
   import { supabaseAuthStateChange } from 'supakit'
+  import { onMount } from 'svelte'
 
-  supabaseAuthStateChange()
+  onMount(() => {
+    supabaseAuthStateChange()
+  })
 </script>
 ```
 
