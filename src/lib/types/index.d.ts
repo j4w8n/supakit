@@ -1,4 +1,4 @@
-import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, SupabaseClient, SupportedStorage } from '@supabase/supabase-js'
 import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
@@ -17,4 +17,5 @@ export function supabaseAuthStateChange(
 ): void
 export function getSession(): Writable<Session | null>
 export function setCookieOptions({}: CookieSerializeOptions): void
+export const CookieStorage: SupportedStorage
 export const supabase: SupabaseClient
