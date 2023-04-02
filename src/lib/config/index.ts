@@ -7,7 +7,7 @@ const defaults = {
 }
 let cookie_options: CookieSerializeOptions
 
-export const getCookieOptions = async (): Promise<CookieSerializeOptions> => {
+export const getCookieOptions = (): CookieSerializeOptions => {
   return cookie_options ?? defaults
 }
 

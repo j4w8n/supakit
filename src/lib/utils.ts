@@ -1,4 +1,4 @@
-import type { CookieOptions } from 'supakit'
+import type { CookieOptions } from './types/index.js'
 
 export const merge = (current: CookieOptions, updates: CookieOptions): CookieOptions => {
   if (updates) {
