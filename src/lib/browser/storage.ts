@@ -3,11 +3,11 @@ import type { SupportedStorage } from "@supabase/supabase-js"
 let token = ''
 let name = ''
 
-export const getCSRF = () => {
+const getCSRF = () => {
   return { token, name }
 }
 
-export const setCSRF = () => {
+const setCSRF = () => {
   token = crypto.randomUUID()
   name = crypto.randomUUID()
   return { token, name }
