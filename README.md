@@ -3,8 +3,8 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only su
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoint.
-- You can use your own custom Supabase clients or the clients provided by Supakit.
-- Offers a secure client-side "session" store, which is hydrated with Supabase session info after `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This helps with immediate reactivity after these events occur.
+- You can use your own custom Supabase clients, the clients provided by Supakit, or a mix (eg Supakit for browser, custom for server; or vice versa).
+- Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 
 ## Install
@@ -15,11 +15,10 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only su
 
 `yarn add supakit`
 
-## Setup
-Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
-
 ## Bare Minimum
-After setup, the code in this section will get you working. For more reading and options, checkout the sections further below.
+
+## Environment
+Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ### Types
 If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file. We also recommend adding `session` to `PageData`, since this is commonly returned.
@@ -41,7 +40,7 @@ declare global {
 ```
 
 ### Server hooks
-This takes care of cookies and setting `event.locals` - including setting the server-side client's session with the currently logged in user.
+Sets cookies and `event.locals`. Also sets up the server client.
 
 ```js
 /* hooks.server.ts */
@@ -51,8 +50,6 @@ export const handle = supakitAuth
 ```
 
 ### Declare onAuthStateChange
-Do this using Supakit's custom function. 
-
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
@@ -66,7 +63,7 @@ Do this using Supakit's custom function.
 ```
 
 ### Server-side usage
-The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the client-side Supabase client.
+The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the browser client; nor will any updated data sync with the browser client.
 
 ```js
 /* some server-side load file, for example +layout.server.ts */
@@ -83,7 +80,7 @@ export const load = (({ locals: { session, supabase } }) => {
 ```
 
 ### Client-side usage
-The built-in Supabase client relies on `$env/dynamic/public`.
+The built-in Supabase client relies on `$env/dynamic/public`. Supakit's custom `CookieStorage` is used for the client.
 
 ```html
 <!-- some client-side file -->
@@ -97,7 +94,7 @@ The built-in Supabase client relies on `$env/dynamic/public`.
 ## Further Reading and Options
 
 ### Create your own Supabase clients
-By default, Supakit creates a Supabase browser client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`. And unless you're providing your own storage, you'll need to use Supakit's storage.
+By default, Supakit creates a browser client for you. However, if you need to use additional client options, then you can provide your own client. Be sure to pass it in as the first parameter to `supabaseAuthStateChange()`. And unless you're providing your own storage, you'll still need to use Supakit's `CookieStorage`.
 
 ```ts
 /* some client-side file, for example src/lib/client.ts */
@@ -115,32 +112,31 @@ export const supabase: SupabaseClient = createClient(
 )
 ```
 
-We provide a Supabase server client as well, via `event.locals.supabase`; but you're welcome to use your own and disregard `event.locals.supabase` and the `Locals` [type](#types).
+We provide a server client as well, via `event.locals.supabase`; but you're welcome to use your own. Depending on your use-case, you might be able to disregard `event.locals.supabase` and the `Locals` [type](#types).
 
 ### Store
-A secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
+`getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) feature. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
 
-For page refreshes, you can populate the store with returned server data. In the below example, we use the `$page` store, but you can also use the `export let data` method.
+For page refreshes, you can populate the store with returned server data.
 
 Setup
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
-  import { page } from '$app/stores'
   import { onMount } from 'svelte'
   import { getSession, supabaseAuthStateChange } from 'supakit'
 
+  export let data
   const session = getSession()
 
   /**
-   * Hydrate the store on subsequent loads.
-   * This assumes you return `session` from a file 
+   * data.session assumes you return `session` from a file 
    * like +layout.server.ts or +layout.ts with code such as:
    * return {
    *   session: event.locals.session
    * }
    */
-  $session = $page.data.session
+  $session = data.session
 
   onMount(() => {
     supabaseAuthStateChange(null, session)
@@ -160,7 +156,7 @@ Page Usage
 {/if}
 ```
 
-> You can't effectively use this store for other purposes, like writing your own data to it, as the store's value will be overwritten after certain events and upon requests to the server.
+> You can't effectively use this store for other purposes, like writing your own data to it, as the store's value will be overwritten after certain events and during server requests.
 
 ### Cookies
 Supakit will set upto four cookies.
@@ -170,7 +166,7 @@ Supakit will set upto four cookies.
 - `sb-provider-refresh-token`
 - `sb-<crypto.randomUUID()>-csrf`
 
-`sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be updated by you after you refresh them. The csrf cookie is a session cookie, used to help secure the `/supakit` endpoint for cookie storage; and you may notice more than one.
+`sb-session` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be refreshed and updated by you. The csrf cookie is a session cookie, used to help secure the `/supakit` endpoint for cookie storage; and you may notice more than one.
 
 > Supakit uses the special, programmed routes `/supakit` and `/supakitCSRF` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
 
@@ -221,11 +217,9 @@ event.locals.supabase
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
 ### Auth State
-Handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a custom Supabase client, Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
+`supabaseAuthStatChange()` handles logic for Supabase's `onAuthStateChange()`. It optionally takes in a custom Supabase client, Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
 
 If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
-
-In the below example, we use the `$page` store, but you can also use the `export let data` method.
 
 Type: 
 ```ts
@@ -240,13 +234,13 @@ Example:
 ```html
 <!-- +layout.svelte -->
 <script lang="ts">
-  import { page } from '$app/stores'
   import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
   import { getSession, supabaseAuthStateChange } from 'supakit'
 
+  export let data
   const session = getSession()
-  $session = $page.data.session
+  $session = data.session
 
   /**
    * Using `null` for the client, in this example, means you want to use Supakit's built-in Supabase client.
@@ -265,7 +259,7 @@ Example:
 </script>
 ```
 
-## Protecting Page Routes
+## Protecting Routes
 
 Sometimes you want a user to be logged in, in order to access certain pages.
 
@@ -290,9 +284,9 @@ src/routes/
 └ +page.svelte
 ```
 
-### During Layout Server Requests
+### Server-side Layout
 
-When using a `+layout.server.ts` file, first check for a null `locals.session.user` before using a Supabase server client via `locals.supabase`. You can also check `locals.session.access_token` or `locals.session.refresh_token`. If there's no user, then the server client won't be authenticated to make Supabase requests.
+When using a `+layout.server.ts` file, check for a null `locals.session` before using a Supabase server client via `locals.supabase`. If there's no session, then the server client won't be authenticated with a user.
 
 ```js
 /* src/routes/(auth)/+layout.server.ts */
@@ -312,9 +306,9 @@ export const load = (async ({ locals: { session, supabase } }) => {
 }) satisfies LayoutServerLoad
 ```
 
-### During Client-side Navigation
+### Server-side and Client-side Page
 
-Protect pages using a `+page.server.ts` file for each page route. This is needed because `+layout.server.ts` will not necessarily run on every request. This method works for both client-side and server-side requests, because it causes `handle()` to be called in `hooks.server.ts`.
+Protect pages using a `+page.server.ts` file for each page route. This is needed because `+layout.server.ts` will not necessarily run on every request. This method works for both client-side and server-side requests.
 
 ```js
 /* src/routes/(auth)/app/+page.server.ts */
