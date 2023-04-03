@@ -286,7 +286,7 @@ src/routes/
 
 ### Server-side Layout
 
-When using a `+layout.server.ts` file, check for a null `locals.session` before using a Supabase server client via `locals.supabase`. If there's no session, then the server client won't be authenticated with a user.
+When using a `+layout.server.ts` file, check for a null `locals.session`. If there's no session, then the server client won't be authenticated with a user and will act as an anon client.
 
 ```js
 /* src/routes/(auth)/+layout.server.ts */
