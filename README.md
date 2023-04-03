@@ -65,7 +65,7 @@ export const handle = supakitAuth
 ### Server-side usage
 The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the browser client; nor will any updated data sync with the browser client.
 
-```js
+```ts
 /* some server-side load file, for example +layout.server.ts */
 import type { LayoutServerLoad } from './$types'
 
@@ -194,6 +194,28 @@ export const handle = supakitAuth
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
+
+If you need to set cookies yourself, you can import `getCookieOptions()` or use `event.locals.cookie_options` if available.
+
+Example:
+```ts
+import { getCookieOptions } from 'supakit'
+
+const cookie_options = getCookieOptions()
+```
+
+```ts
+/* some server-side file with locals available */
+export const yourHandler = (async ({ event, resolve }) => {
+  if ('some check') {
+    const response = new Response(null)
+    response.headers.append('set-cookie', event.cookies.serialize(`cookie-name`, token, event.locals.cookie_options))
+    return response
+  }
+
+  return await resolve(event)
+}) satisfies Handle
+```
 
 ### Locals
 Supakit sets the following `event.locals`:
