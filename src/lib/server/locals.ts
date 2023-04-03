@@ -2,6 +2,7 @@ import type { Handle } from "@sveltejs/kit"
 import { createClient, type Session } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 import { decodeBase64URL } from '../utils.js'
+import { getCookieOptions } from '../config/index.js'
 
 export const locals = (async ({ event, resolve }) => {
   const session: Session | null = event.cookies.get('sb-session') ? JSON.parse(event.cookies.get('sb-session') || '') : null
@@ -36,6 +37,8 @@ export const locals = (async ({ event, resolve }) => {
       refresh_token: session.refresh_token 
     })
   }
+
+  event.locals.cookie_options = getCookieOptions()
 
   return await resolve(event)
 }) satisfies Handle
