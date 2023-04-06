@@ -37,3 +37,20 @@ export const decodeBase64URL = (value: string): string => {
   }
   return base64
 }
+
+/**
+ * CSRF protection, taken from @sveltejs/kit
+ */
+const is_content_type = (request: Request, ...types: string[]) => {
+  const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? ''
+	return types.includes(type)
+}
+
+export const is_form_content_type = (request: Request) => {
+  return is_content_type(
+    request,
+    'application/x-www-form-urlencoded',
+    'multipart/form-data',
+    'text/plain'
+  )
+}

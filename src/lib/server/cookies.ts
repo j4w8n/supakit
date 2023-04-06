@@ -1,11 +1,24 @@
 import { getCookieOptions } from '../config/index.js'
 import type { Session } from '@supabase/supabase-js'
-import { json, type Handle } from "@sveltejs/kit"
+import { json, type Handle, error, text } from "@sveltejs/kit"
+import { is_form_content_type } from '../utils.js'
 
 export const cookies = (async ({ event, resolve }) => {
   const cookie_options = getCookieOptions()
 
   if (event.url.pathname === '/supakitCSRF' && event.request.method === 'POST') {
+    /**
+     * CSRF protection, taken from @sveltejs/kit
+     */
+    const forbidden = is_form_content_type(event.request) && event.request.headers.get('origin') !== event.url.origin
+    if (forbidden) {
+			const csrf_error = error(403, `Cross-site ${event.request.method} form submissions are forbidden`);
+			if (event.request.headers.get('accept') === 'application/json') {
+				return json(csrf_error.body, { status: csrf_error.status });
+			}
+			return text(csrf_error.body.message, { status: csrf_error.status });
+		}
+
     const data: { token: string, name: string } = event.request.body ? await event.request.json() : {}
 
     if (!data.token || !data.name) return new Response('Invalid body.', { status: 400 })
