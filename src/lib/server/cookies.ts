@@ -1,24 +1,15 @@
 import { getCookieOptions } from '../config/index.js'
 import type { Session } from '@supabase/supabase-js'
-import { json, type Handle, error, text } from "@sveltejs/kit"
-import { is_form_content_type } from '../utils.js'
+import { json, type Handle } from "@sveltejs/kit"
+import { csrf_check } from '../utils.js'
 
 export const cookies = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
   const cookie_options = getCookieOptions()
 
   if (url.pathname === '/supakitCSRF' && request.method === 'POST') {
-    /**
-     * CSRF protection, taken from @sveltejs/kit
-     */
-    const forbidden = is_form_content_type(request) && request.headers.get('origin') !== url.origin
-    if (forbidden) {
-			const csrf_error = error(403, `Cross-site ${request.method} form submissions are forbidden`);
-			if (request.headers.get('accept') === 'application/json') {
-				return json(csrf_error.body, { status: csrf_error.status });
-			}
-			return text(csrf_error.body.message, { status: csrf_error.status });
-		}
+    const forbidden = csrf_check(event)
+    if (forbidden) return forbidden
 
     const data: { token: string, name: string } = request.body ? await request.json() : {}
 
@@ -38,6 +29,9 @@ export const cookies = (async ({ event, resolve }) => {
   
   /* Handle request to Supakit's cookie route */
   if (url.pathname === '/supakit') {
+    const forbidden = csrf_check(event)
+    if (forbidden) return forbidden
+
     const cookieName = request.headers.get('x-csrf-name') ?? false
     const cookie = cookies.get(`sb-${cookieName}-csrf`) ?? false
     const token = request.headers.get('x-csrf-token') ?? false
