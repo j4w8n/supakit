@@ -6,6 +6,7 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only su
 - You can use your own custom Supabase clients, the clients provided by Supakit, or a mix (eg Supakit for browser, custom for server; or vice versa).
 - Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
+- Option to not use server-side features
 
 ## Install
 
@@ -21,7 +22,7 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only su
 Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ### Types
-If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file. We also recommend adding `session` to `PageData`, since this is commonly returned.
+If using Typescript, add this import, as well as `session` and `supabase` to your app.d.ts file - if using the server-side features. We also recommend adding `session` to `PageData`, since this is commonly returned.
 
 ```ts
 import { SupabaseClient, Session } from '@supabase/supabase-js'
@@ -40,13 +41,21 @@ declare global {
 ```
 
 ### Server hooks
-Sets cookies and `event.locals`. Also sets up the server client.
-
+Handles cookies, `event.locals`, and the server client.
 ```js
 /* hooks.server.ts */
-import { supakitAuth } from 'supakit'
+import { supakit } from 'supakit'
 
-export const handle = supakitAuth
+export const handle = supakit
+```
+
+#### Supakit Lite
+if you don't want Supakit to handle server-side features like `event.locals` or create a server client, then you can use a different import that will only handle setting browser cookies.
+```js
+/* hooks.server.ts */
+import { supakitLite } from 'supakit'
+
+export const handle = supakitLite
 ```
 
 ### Declare onAuthStateChange
@@ -183,17 +192,18 @@ Supakit Defaults:
 
 Example:
 ```ts
-import { setCookieOptions, supakitAuth } from 'supakit'
+import { setCookieOptions, supakit } from 'supakit'
 
 setCookieOptions({
   maxAge: 60 * 60 * 24 * 365 * 100,
   sameSite: 'strict'
 })
 
-export const handle = supakitAuth
+export const handle = supakit
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
+> The only exception, for passing in your own cookie options, is that we discourge setting `httpOnly`. Supakit relies on this value to be `true` for better cookie security. Typescript will show an error if you try to pass it in.
 
 If you need to set cookies yourself, you can import `getCookieOptions()` or use `event.locals.cookie_options` if available.
 
