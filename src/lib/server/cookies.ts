@@ -7,20 +7,20 @@ export const cookies = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
   const cookie_options = getCookieOptions()
 
-  if (url.pathname === '/supakitCSRF' && request.method === 'POST') {
+  if (url.pathname === '/supakitCSRF') {
     const forbidden = csrf_check(event)
     if (forbidden) return forbidden
 
-    const data: { token: string, name: string } = request.body ? await request.json() : {}
+    if (request.method === 'POST') {
+      const data: { token: string, name: string } = request.body ? await request.json() : {}
 
-    if (!data.token || !data.name) return new Response('Invalid body.', { status: 400 })
+      if (!data.token && !data.name) return new Response('Invalid body.', { status: 400 })
 
-    const token = data.token
-    const cookie = data.name
+      const token = data.token
+      const cookie_name = data.name
 
-    if (token) {
       const response = new Response(null)
-      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie}-csrf`, token))
+      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token))
       return response
     }
 
@@ -32,8 +32,8 @@ export const cookies = (async ({ event, resolve }) => {
     const forbidden = csrf_check(event)
     if (forbidden) return forbidden
 
-    const cookieName = request.headers.get('x-csrf-name') ?? false
-    const cookie = cookies.get(`sb-${cookieName}-csrf`) ?? false
+    const cookie_name = request.headers.get('x-csrf-name') ?? false
+    const cookie = cookies.get(`sb-${cookie_name}-csrf`) ?? false
     const token = request.headers.get('x-csrf-token') ?? false
 
     if (!cookie || !token) return new Response(null, { status: 401 })
@@ -76,6 +76,8 @@ export const cookies = (async ({ event, resolve }) => {
       
       return response
     }
+
+    return new Response(null, { status: 401 })
   }
 
   return await resolve(event)
