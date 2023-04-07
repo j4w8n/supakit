@@ -4,10 +4,10 @@ import type { Writable } from 'svelte/store'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
 
 export const supabaseAuthStateChange = async (client: SupabaseClient | null = null, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
-  const supabaseClient = client ?? supabase
+  const supabase_client = client ?? supabase
   let cached_session: Session | null = null
 
-  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  supabase_client.auth.onAuthStateChange(async (event, session) => {
     /**
      * expires_at check ensures that we don't set cookies unnecessarily;
      * since an INITIAL_SESSION event fires it's own SIGNED_IN event and the session would be the same.

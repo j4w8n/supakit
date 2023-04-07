@@ -16,15 +16,15 @@ const setCSRF = () => {
 export const CookieStorage: SupportedStorage = {
   getItem(key) {
     let session = null
-    let sessionCSRF = null
-    const csrfExists = getCSRF() ?? {}
+    let session_csrf = null
+    const csrf_exists = getCSRF() ?? {}
 
-    if (!csrfExists.token) {
-      const csrfNew = setCSRF()
+    if (!csrf_exists.token) {
+      const csrf_new = setCSRF()
       try {
-        sessionCSRF = fetch('/supakitCSRF', {
+        session_csrf = fetch('/supakitCSRF', {
           method: 'POST',
-          body: JSON.stringify(csrfNew)
+          body: JSON.stringify(csrf_new)
         }).then(() => {
           try {
             const csrf = getCSRF()
@@ -43,7 +43,7 @@ export const CookieStorage: SupportedStorage = {
           }
           return session
         })
-        return sessionCSRF
+        return session_csrf
       } catch (err: any) {
         return null
       }
