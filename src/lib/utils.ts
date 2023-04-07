@@ -44,7 +44,7 @@ export const decodeBase64URL = (value: string): string => {
  */
 const is_content_type = (request: Request, ...types: string[]) => {
   const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? ''
-	return types.includes(type)
+	return types.includes(type.toLowerCase())
 }
 const is_form_content_type = (request: Request) => {
   return is_content_type(
