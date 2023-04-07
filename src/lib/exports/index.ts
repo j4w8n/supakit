@@ -1,4 +1,4 @@
-export { supakitAuth } from '../server/auth.js'
+export { supakit, supakitLite } from '../server/hooks.js'
 export { supabase } from '../browser/client.js'
 export { supabaseAuthStateChange } from '../browser/state.js'
 export { getSession } from '../browser/store.js'
