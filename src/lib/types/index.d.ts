@@ -7,6 +7,8 @@ export type CookieOptions = {
   [key: string]: any
 }
 
+export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
+
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => void
 
 export function supakitAuth(): Handle

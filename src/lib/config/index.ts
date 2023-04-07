@@ -1,5 +1,6 @@
 import { merge } from '../utils.js'
 import type { CookieSerializeOptions } from 'cookie'
+import type { SecureCookieOptions } from 'supakit'
 
 const defaults = {
   path: '/',
@@ -11,7 +12,7 @@ export const getCookieOptions = (): CookieSerializeOptions => {
   return cookie_options ?? defaults
 }
 
-export const setCookieOptions = (value: CookieSerializeOptions) => {
+export const setCookieOptions = (value: SecureCookieOptions) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
 
   cookie_options = merge(defaults, value)
