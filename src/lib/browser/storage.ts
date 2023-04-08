@@ -2,6 +2,7 @@ import type { SupportedStorage } from "@supabase/supabase-js"
 
 let token = ''
 let name = ''
+let cached_session: {} | null = null
 
 const getCSRF = () => {
   return { token, name }
@@ -15,6 +16,7 @@ const setCSRF = () => {
 
 export const CookieStorage: SupportedStorage = {
   getItem(key) {
+    if (cached_session) return JSON.stringify(cached_session)
     let session = null
     let session_csrf = null
     const csrf_exists = getCSRF() ?? {}
@@ -67,6 +69,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   setItem(key, value) {
+    cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
       fetch('/supakit', {
@@ -82,6 +85,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   removeItem(key) {
+    cached_session = null
     const csrf = getCSRF()
     try {
       fetch('/supakit', {
