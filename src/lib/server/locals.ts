@@ -6,7 +6,8 @@ import { getCookieOptions } from '../config/index.js'
 
 export const locals = (async ({ event, resolve }) => {
   const { cookies, locals } = event
-  const session: Session | null = cookies.get('sb-session') ? JSON.parse(cookies.get('sb-session') || '') : null
+  const temp_session = cookies.get('sb-temp-session') ? JSON.parse(cookies.get('sb-temp-session') || '') : null
+  const session: Session | null = cookies.get('sb-session') ? JSON.parse(cookies.get('sb-session') || '') : temp_session
   const provider_token: string = cookies.get('sb-provider-token') ? JSON.parse(cookies.get('sb-provider-token') || '') : null
   const provider_refresh_token: string = cookies.get('sb-provider-refresh-token') ? JSON.parse(cookies.get('sb-provider-refresh-token') || '') : null
 
