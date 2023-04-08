@@ -21,6 +21,14 @@ export const supabaseAuthStateChange = async (client: SupabaseClient | null = nu
       if (store) store.set(null)
     }
 
-    if (callback) callback({event, session})
+    if (callback) {
+      /**
+       * Ensure cookies are set/expired before callback code runs.
+       */
+      const wait = new Promise(( resolve, reject ) => {
+        setTimeout(() => { resolve('cookie') }, 100)
+      })
+      wait.then(() => callback({event, session}))
+    }
   })
 }
