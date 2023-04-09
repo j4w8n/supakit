@@ -15,10 +15,15 @@ const setCSRF = () => {
   return { token, name }
 }
 
+const isAuthToken = (name: string) => {
+  const regex = /^sb-.*-auth-token$/
+  return regex.test(name)
+}
+
 export const CookieStorage: SupportedStorage = {
   getItem(key) {
     if (!browser()) return null
-    if (cached_session) return JSON.stringify(cached_session)
+    if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
     let session = null
     let session_csrf = null
     const csrf_exists = getCSRF() ?? {}
@@ -36,7 +41,8 @@ export const CookieStorage: SupportedStorage = {
               method: 'GET',
               headers: {
                 'x-csrf-token': csrf.token,
-                'x-csrf-name': csrf.name
+                'x-csrf-name': csrf.name,
+                'x-storage-key': key
               }
             }).then(async (res) => {
               const json = res.body ? await res.json() : { session: null }
@@ -58,7 +64,8 @@ export const CookieStorage: SupportedStorage = {
           method: 'GET',
           headers: {
             'x-csrf-token': csrf.token,
-            'x-csrf-name': csrf.name
+            'x-csrf-name': csrf.name,
+            'x-storage-key': key
           }
         }).then(async (res) => {
           const json = res.body ? await res.json() : { session: null }
@@ -72,12 +79,12 @@ export const CookieStorage: SupportedStorage = {
   },
   setItem(key, value) {
     if (!browser()) return
-    cached_session = JSON.parse(value)
+    if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
       fetch('/supakit', {
         method: 'POST',
-        body: value,
+        body: JSON.stringify({ key, value }),
         headers: {
           'x-csrf-token': csrf.token,
           'x-csrf-name': csrf.name
@@ -89,11 +96,12 @@ export const CookieStorage: SupportedStorage = {
   },
   removeItem(key) {
     if (!browser()) return
-    cached_session = null
+    if (isAuthToken(key)) cached_session = null
     const csrf = getCSRF()
     try {
       fetch('/supakit', {
         method: 'DELETE',
+        body: JSON.stringify({ key }),
         headers: {
           'x-csrf-token': csrf.token,
           'x-csrf-name': csrf.name

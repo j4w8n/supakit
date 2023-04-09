@@ -6,8 +6,10 @@ import { getCookieOptions } from '../config/index.js'
 
 export const locals = (async ({ event, resolve }) => {
   const { cookies, locals } = event
+  const regex = /^sb-.*-auth-token$/
   const temp_session = cookies.get('sb-temp-session') ? JSON.parse(cookies.get('sb-temp-session') || '') : null
-  const session: Session | null = cookies.get('sb-session') ? JSON.parse(cookies.get('sb-session') || '') : temp_session
+  const auth_cookie_exists = cookies.getAll().find(cookie => regex.test(cookie.name))
+  const session: Session | null = auth_cookie_exists ? JSON.parse(cookies.get(auth_cookie_exists.name) || '') : temp_session
   const provider_token: string = cookies.get('sb-provider-token') ? JSON.parse(cookies.get('sb-provider-token') || '') : null
   const provider_refresh_token: string = cookies.get('sb-provider-refresh-token') ? JSON.parse(cookies.get('sb-provider-refresh-token') || '') : null
 
