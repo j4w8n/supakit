@@ -1,4 +1,5 @@
-import type { SupportedStorage } from "@supabase/supabase-js"
+import type { SupportedStorage } from '@supabase/supabase-js'
+import { browser } from '../utils.js'
 
 let token = ''
 let name = ''
@@ -16,6 +17,7 @@ const setCSRF = () => {
 
 export const CookieStorage: SupportedStorage = {
   getItem(key) {
+    if (!browser()) return null
     if (cached_session) return JSON.stringify(cached_session)
     let session = null
     let session_csrf = null
@@ -69,6 +71,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   setItem(key, value) {
+    if (!browser()) return
     cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
@@ -85,6 +88,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   removeItem(key) {
+    if (!browser()) return
     cached_session = null
     const csrf = getCSRF()
     try {

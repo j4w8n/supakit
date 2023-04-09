@@ -1,6 +1,8 @@
 import type { CookieOptions } from './types/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
+export const browser = () => typeof document !== 'undefined'
+
 export const merge = (current: CookieOptions, updates: CookieOptions): CookieOptions => {
   if (updates) {
     for (let key of Object.keys(updates)) {
