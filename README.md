@@ -273,6 +273,9 @@ event.locals.session = {
 
 /* Supakit's server-side Supabase client */
 event.locals.supabase
+
+/* If you want to set your own cookies on the server-side, and use Supakit's or your custom options */
+event.locals.cookie_options
 ```
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
