@@ -146,6 +146,8 @@ export const supabase: SupabaseClient = createClient(
 
 We provide a server client as well, via `event.locals.supabase`; but you're welcome to use your own. Depending on your use-case, you might be able to disregard `event.locals.supabase` and the `Locals` [type](#types). If you're not going to use any part of Supakit's `event.locals`, then you can use [Supakit Lite](#supakit-lite)
 
+> Supakit does not currently support passing a custom `storageKey` to a browser client.
+
 ### Store
 `getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
 
