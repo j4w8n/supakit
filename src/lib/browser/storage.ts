@@ -21,68 +21,62 @@ const isAuthToken = (name: string) => {
 }
 
 export const CookieStorage: SupportedStorage = {
-  getItem(key) {
+  async getItem(key) {
     if (!browser()) return null
     if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
-    let session = null
-    let session_csrf = null
-    const csrf_exists = getCSRF() ?? {}
+    let csrf = getCSRF() ?? null
 
-    if (!csrf_exists.token) {
-      const csrf_new = setCSRF()
+    const getSession = async () => {
+      let session: string | null = null
       try {
-        session_csrf = fetch('/supakitCSRF', {
-          method: 'POST',
-          body: JSON.stringify(csrf_new)
-        }).then(() => {
-          try {
-            const csrf = getCSRF()
-            session = fetch('/supakit', {
-              method: 'GET',
-              headers: {
-                'x-csrf-token': csrf.token,
-                'x-csrf-name': csrf.name,
-                'x-storage-key': key
-              }
-            }).then(async (res) => {
-              const json = res.body ? await res.json() : { session: null }
-              return json.session
-            })
-          } catch (err: any) {
-            return null
-          }
-          return session
-        })
-        return session_csrf
-      } catch (err: any) {
-        return null
-      }
-    } else {
-      try {
-        const csrf = getCSRF()
-        session = fetch('/supakit', {
+        const res = await fetch('/supakit', {
           method: 'GET',
           headers: {
             'x-csrf-token': csrf.token,
             'x-csrf-name': csrf.name,
             'x-storage-key': key
           }
-        }).then(async (res) => {
-          const json = res.body ? await res.json() : { session: null }
-          return json.session
         })
+        const json = res.body ? await res.json() : { session: null }
+        if (json.session) {
+          cached_session = json.session
+          session = json.session
+        }
+
+        return session
       } catch (err: any) {
+        console.log('Error getting session from server', err)
         return null
       }
-      return session
+    }
+
+    if(csrf.token) {
+      return await getSession()
+    } else {
+      csrf = setCSRF()
+      try {
+        const res = await fetch('/supakitCSRF', {
+          method: 'POST',
+          body: JSON.stringify(csrf)
+        })
+
+        if (res.status === 200) {
+          return await getSession()
+        } else {
+          return null
+        }
+      } catch (err: any) {
+        console.log('Error setting CSRF cookie', err)
+        return null
+      }
     }
   },
-  setItem(key, value) {
+  async setItem(key, value) {
     if (!browser()) return
     if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
-      fetch('/supakit', {
+      const res = await fetch('/supakit', {
         method: 'POST',
         body: JSON.stringify({ key, value }),
         headers: {
@@ -90,16 +84,18 @@ export const CookieStorage: SupportedStorage = {
           'x-csrf-name': csrf.name
         }
       })
+      if (res.status !== 200) console.log('Error setting session', res.statusText)
     } catch (err: any) {
+      console.log('Error setting session', err)
       return
     }
   },
-  removeItem(key) {
+  async removeItem(key) {
     if (!browser()) return
     if (isAuthToken(key)) cached_session = null
     const csrf = getCSRF()
     try {
-      fetch('/supakit', {
+      const res = await fetch('/supakit', {
         method: 'DELETE',
         body: JSON.stringify({ key }),
         headers: {
@@ -107,7 +103,9 @@ export const CookieStorage: SupportedStorage = {
           'x-csrf-name': csrf.name
         }
       })
+      if (res.status !== 204) console.log('Error deleting session', res.statusText)
     } catch (err: any) {
+      console.log('Error deleting session', err)
       return
     }
   }
