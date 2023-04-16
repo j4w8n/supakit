@@ -1,5 +1,7 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
+import { getCookieOptions } from '../config/index.js'
 import { browser } from '../utils.js'
+import { serialize } from 'cookie'
 
 let token = ''
 let name = ''
@@ -24,10 +26,9 @@ export const CookieStorage: SupportedStorage = {
   async getItem(key) {
     if (!browser()) return null
     if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
-    let csrf = getCSRF() ?? null
+    let csrf = getCSRF()
 
-    const getSession = async () => {
-      let session: string | null = null
+    const getCookie = async () => {
       try {
         const res = await fetch('/supakit', {
           method: 'GET',
@@ -37,23 +38,41 @@ export const CookieStorage: SupportedStorage = {
             'x-storage-key': key
           }
         })
-        const json = res.body ? await res.json() : { session: null }
-        if (json.session) {
-          cached_session = json.session
-          session = json.session
-        }
 
-        return session
+        if (res.status === 200){
+          const json: { cookie: any } = res.body ? await res.json() : { cookie: null }
+          if (json.cookie.access_token) {
+            cached_session = json.cookie
+          }
+
+          return json.cookie
+        } else {
+          return null
+        }
       } catch (err: any) {
-        console.log('Error getting session from server', err)
+        console.error('Error getting cookie from server', err)
         return null
       }
     }
 
-    if(csrf.token) {
-      return await getSession()
+    if (csrf.token !== '') {
+      return await getCookie()
     } else {
       csrf = setCSRF()
+
+      /**
+       * If this is the first visit or the page refreshes,
+       * set a temp non-httpOnly cookie for use with initial endpoint calls.
+       */
+      const cookie_options = getCookieOptions()
+      document.cookie = serialize(`sb-${csrf.name}-csrf`, csrf.token, {
+        ...cookie_options,
+        httpOnly: false,
+        maxAge: 5,
+        sameSite: 'strict',
+        secure: true
+      })
+
       try {
         const res = await fetch('/supakitCSRF', {
           method: 'POST',
@@ -61,13 +80,13 @@ export const CookieStorage: SupportedStorage = {
         })
 
         if (res.status === 200) {
-          return await getSession()
+          return await getCookie()
         } else {
           return null
         }
       } catch (err: any) {
-        console.log('Error setting CSRF cookie', err)
-        return null
+        console.error('Error setting CSRF cookie', err)
+        throw err
       }
     }
   },
@@ -84,9 +103,9 @@ export const CookieStorage: SupportedStorage = {
           'x-csrf-name': csrf.name
         }
       })
-      if (res.status !== 200) console.log('Error setting session', res.statusText)
+      if (res.status !== 200) console.error('Error setting cookie', res.statusText)
     } catch (err: any) {
-      console.log('Error setting session', err)
+      console.error('Error setting cookie', err)
       return
     }
   },
@@ -103,9 +122,9 @@ export const CookieStorage: SupportedStorage = {
           'x-csrf-name': csrf.name
         }
       })
-      if (res.status !== 204) console.log('Error deleting session', res.statusText)
+      if (res.status !== 204) console.error('Error deleting cookie', res.statusText)
     } catch (err: any) {
-      console.log('Error deleting session', err)
+      console.error('Error deleting cookie', err)
       return
     }
   }

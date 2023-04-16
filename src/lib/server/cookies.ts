@@ -35,13 +35,13 @@ export const cookies = (async ({ event, resolve }) => {
     const cookie = cookies.get(`sb-${cookie_name}-csrf`) ?? false
     const token = request.headers.get('x-csrf-token') ?? false
 
-    if (!cookie || !token) return new Response(null, { status: 401 })
-    if (cookie != token) return new Response(null, { status: 401 })
+    if (!cookie || !token) return new Response('No CSRF cookie or token', { status: 401 })
+    if (cookie != token) return new Response('CSRF cookie and token do not match', { status: 401 })
 
     if (request.method === 'GET') {
       const key = request.headers.get('x-storage-key') ?? ''
       const response = json({
-        session: cookies.get(key) ?? null
+        cookie: cookies.get(key) ?? null
       })
 
       return response

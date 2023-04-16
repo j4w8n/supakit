@@ -1,20 +1,28 @@
-import { supabase } from './client.js'
 import { getCookieOptions } from '../config/index.js'
 import type { StateChangeCallback } from '../types/index.js'
 import type { Writable } from 'svelte/store'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
 import { serialize } from 'cookie'
 
-export const supabaseAuthStateChange = (client: SupabaseClient | null = null, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
-  const supabase_client = client ?? supabase
-  let cached_session: Session | null = null
+export const supabaseAuthStateChange = (client: SupabaseClient, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
+  let cached_expires_at: number | undefined
+  let initial = true
 
-  supabase_client.auth.onAuthStateChange((event, session) => {
+  client.auth.onAuthStateChange((event, session) => {  
     /**
-     * If the client is logging in or the page refreshes,
-     * set a temp non-httpOnly cookie for use with callback code.
+     * The context is that someone was already on the page,
+     * previously not logged in, but has now logged in.
+     * Set a temp non-httpOnly cookie for potential use with any
+     * callback code that accesses the server.
+     * 
+     * A new tab/window or page refresh, when there is an auth cookie, would not trigger here, 
+     * because initial would be true in that case; and we don't want to set a temp cookie
+     * where there's already a cookie.
+     * 
+     * SIGNED_IN && !initial covers most logins
+     * INITIAL_SESSION && initial covers logins where the page is refreshed
      */
-    if (event === 'SIGNED_IN' && cached_session === null) {
+    if (((event === 'SIGNED_IN' && !initial) || (event === 'INITIAL_SESSION' && initial)) && cached_expires_at === undefined && session) {
       const cookie_options = getCookieOptions()
       document.cookie = serialize('sb-temp-session', JSON.stringify(session), {
         ...cookie_options,
@@ -26,15 +34,22 @@ export const supabaseAuthStateChange = (client: SupabaseClient | null = null, st
     }
 
     /**
-     * expires_at check ensures that we don't set cookies unnecessarily;
-     * since an INITIAL_SESSION event fires it's own SIGNED_IN event and the session would be the same.
+     * The context is that someone has opened a tab/window to the page,
+     * or has refreshed the page.
+     * First run has happened, so set initial to false.
      */
-    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.expires_at !== cached_session?.expires_at)) {
-      cached_session = session
+    if (initial) initial = false
+
+    /**
+     * expires_at check ensures that we don't set the store unnecessarily;
+     */
+    if (event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED' || ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.expires_at !== cached_expires_at)) {
+      cached_expires_at = session?.expires_at
       if (store) store.set(session)
     }
+
     if (event === 'SIGNED_OUT') {
-      cached_session = null
+      cached_expires_at = undefined
       if (store) store.set(null)
     }
 

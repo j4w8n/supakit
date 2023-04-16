@@ -10,7 +10,7 @@ export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent,
 export function supakit(): Handle
 export function supakitLite(): Handle
 export function supabaseAuthStateChange(
-  client?: SupabaseClient | null,
+  client: SupabaseClient,
   store?: Writable<Session | null> | null, 
   callback?: StateChangeCallback | null
 ): void
@@ -19,4 +19,3 @@ export function getCookieOptions(): CookieSerializeOptions
 export function setCookieOptions({}: CookieSerializeOptions): void
 
 export const CookieStorage: SupportedStorage
-export const supabase: SupabaseClient
