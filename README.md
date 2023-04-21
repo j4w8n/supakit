@@ -2,7 +2,7 @@
 A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only suitable for environments where access to cookies is available. In beta, so breaking changes could happen at any time.
 
 ## Differences from the official Supabase Sveltekit auth helper
-- Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoint.<sup>[1](#httponly-cookie-exception)</sup>
+- Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
 - Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 - Option to not use server-side features.
@@ -120,16 +120,14 @@ The built-in Supabase server client relies on `$env/dynamic/public`. It also set
 
 ```ts
 /* some server-side load file, for example +layout.server.ts */
-import type { LayoutServerLoad } from './$types'
-
-export const load = (({ locals: { session, supabase } }) => {
+export const load = ({ locals: { session, supabase } }) => {
   const { data, error } = await supabase.from('table').select('column')
 
   return {
     stuff: data,
     session
   }
-}) satisfies LayoutServerLoad
+}
 ```
 
 ## Further Reading and Options
@@ -300,20 +298,17 @@ Example:
   import { supabase } from '$lib/client'
 
   export let data
-  const session = getSession()
-  $session = data.session
 
   /**
-   * We're using _session, to differentiate between Supabase's returned session
-   * and the session store; but this isn't required.
+   * We're using session_store, to differentiate between it and 
+   * Supabase's returned session; but this isn't required.
    */
-  onMount(() => {
-    supabaseAuthStateChange(supabase, session, ({ event, _session }) => {
-      /* post auth event code */
+  const session_store = getSession()
+  $session_store = data.session
 
-      /* for example, redirects */
-      if (event === 'SIGNED_IN') goto('/app')
-      if (event === 'SIGNED_OUT') goto('/')
+  onMount(() => {
+    supabaseAuthStateChange(supabase, session_store, ({ event, session }) => {
+      /* put your post auth event code here */
     })
   })
 </script>
