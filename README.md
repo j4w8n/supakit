@@ -180,6 +180,46 @@ Page Usage
 
 > You can't effectively use this store for other purposes, like writing your own data to it, as the store's value will be overwritten after certain events and during server requests.
 
+### Auth State
+`supabaseAuthStatChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
+
+If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
+
+Type: 
+```ts
+supabaseAuthStateChange(
+  client: SupabaseClient, 
+  store?: Writable<Session | null> | null, 
+  callback?: (({ event, session }: { event: string, session: Session | null }) => void) | null
+)
+```
+
+Example:
+```html
+<!-- +layout.svelte -->
+<script lang="ts">
+  import { goto } from '$app/navigation'
+  import { onMount } from 'svelte'
+  import { getSession, supabaseAuthStateChange } from 'supakit'
+  import { supabase } from '$lib/client'
+
+  export let data
+
+  /**
+   * We're using session_store, to differentiate between it and 
+   * Supabase's returned session; but this isn't required.
+   */
+  const session_store = getSession()
+  $session_store = data.session
+
+  onMount(() => {
+    supabaseAuthStateChange(supabase, session_store, ({ event, session }) => {
+      /* put your post auth event code here */
+    })
+  })
+</script>
+```
+
 ### Cookies
 Supakit will set upto four cookies.
 
@@ -274,46 +314,6 @@ event.locals.cookie_options
 ```
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
-### Auth State
-`supabaseAuthStatChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
-
-If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
-
-Type: 
-```ts
-supabaseAuthStateChange(
-  client: SupabaseClient, 
-  store?: Writable<Session | null> | null, 
-  callback?: (({ event, session }: { event: string, session: Session | null }) => void) | null
-)
-```
-
-Example:
-```html
-<!-- +layout.svelte -->
-<script lang="ts">
-  import { goto } from '$app/navigation'
-  import { onMount } from 'svelte'
-  import { getSession, supabaseAuthStateChange } from 'supakit'
-  import { supabase } from '$lib/client'
-
-  export let data
-
-  /**
-   * We're using session_store, to differentiate between it and 
-   * Supabase's returned session; but this isn't required.
-   */
-  const session_store = getSession()
-  $session_store = data.session
-
-  onMount(() => {
-    supabaseAuthStateChange(supabase, session_store, ({ event, session }) => {
-      /* put your post auth event code here */
-    })
-  })
-</script>
-```
-
 ## Protecting Routes
 
 Sometimes you want a user to be logged in, in order to access certain pages.
@@ -346,9 +346,8 @@ When using a `+layout.server.ts` file, check for a null `locals.session`. If the
 ```js
 /* src/routes/(auth)/+layout.server.ts */
 import { redirect } from '@sveltejs/kit'
-import type { LayoutServerLoad } from './$types'
 
-export const load = (async ({ locals: { session, supabase } }) => {
+export const load = async ({ locals: { session, supabase } }) => {
   if (!session) throw redirect(307, '/login')
 
   /* grab info to return */
@@ -358,7 +357,7 @@ export const load = (async ({ locals: { session, supabase } }) => {
     stuff: data,
     session
   }
-}) satisfies LayoutServerLoad
+}
 ```
 
 ### Server-side and Client-side Page
@@ -368,9 +367,8 @@ Protect pages using a `+page.server.ts` file for each page route. This is needed
 ```js
 /* src/routes/(auth)/app/+page.server.ts */
 import { redirect } from '@sveltejs/kit'
-import type { PageServerLoad } from './$types'
 
-export const load = (async ({ locals: { session } }) => {
+export const load = async ({ locals: { session } }) => {
   if (!session) throw redirect(307, '/login')
-}) satisfies PageServerLoad
+}
 ```
