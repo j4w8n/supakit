@@ -1,5 +1,5 @@
 # Supakit
-A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only suitable for environments where access to cookies is available. In beta, so breaking changes could happen at any time.
+A Supabase auth helper for SvelteKit. Relies on browser cookies.
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
@@ -21,9 +21,10 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies, so it's only su
 Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ### Types
-If using Typescript, in your app.d.ts file, add the supabase import, then `session` and `supabase` to `Locals` - if you plan to use the server-side features. If you plan to set additional cookies on the server-side, and use the cookie options set by Supakit, you can add `@types/cookie` as a dev dependency, then the import and `cookie_options` to `Locals`. We also recommend adding `session` to `PageData`, since this is commonly returned from the server.
+Ensure your app.d.ts file includes the supabase import, along with the `session` and `supabase` definitions. If you plan to set additional cookies on the server-side, and use the cookie options set by Supakit, you can install `@types/cookie` as a dev dependency, then add it's import and `cookie_options` definition to this file.
 
 ```ts
+/* src/app.d.ts */
 import { SupabaseClient, Session } from '@supabase/supabase-js'
 import { CookieSerializeOptions } from '@types/cookie'
 
@@ -42,21 +43,16 @@ declare global {
 ```
 
 ### Browser client
-When setting up your client, you'll need to use Supakit's cookie storage. Also, we're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case.
+We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case.
 
 ```ts
 /* some client-side file, for example src/lib/client.ts */
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { env } from '$env/dynamic/public'
-import { CookieStorage } from 'supakit'
+import { CookieStorage, createBrowserClient } from 'supakit'
 
-export const supabase: SupabaseClient = createClient(
-  env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '',
-  {
-    auth: {
-      storage: CookieStorage
-    }
-  }
+export const supabase: SupabaseClient = createBrowserClient(
+  env.PUBLIC_SUPABASE_URL, env.PUBLIC_SUPABASE_ANON_KEY
 )
 ```
 > Supakit does not support passing a custom `storageKey` to a browser client. Supakit uses the default storage key of `sb-<supabase_project_id>-auth-token`.
@@ -78,7 +74,7 @@ You'll need to pass-in your Supabase browser client as the first parameter.
 ```
 
 ### Server hooks
-Handles cookies, `event.locals`, and adding the Supabase server client.
+Handles cookies, setting `event.locals`, and initializing the Supabase server client.
 
 ```ts
 /* hooks.server.ts */
