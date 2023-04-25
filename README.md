@@ -49,7 +49,7 @@ We're using `$env/dynamic` in the example, but you can also use `$env/static` if
 /* some client-side file, for example src/lib/client.ts */
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { env } from '$env/dynamic/public'
-import { CookieStorage, createBrowserClient } from 'supakit'
+import { createBrowserClient } from 'supakit'
 
 export const supabase: SupabaseClient = createBrowserClient(
   env.PUBLIC_SUPABASE_URL, env.PUBLIC_SUPABASE_ANON_KEY
