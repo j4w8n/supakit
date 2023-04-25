@@ -51,10 +51,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { env } from '$env/dynamic/public'
 import { createBrowserClient } from 'supakit'
 
-export const supabase: SupabaseClient = createBrowserClient(
+export const supabase: SupabaseClient = createBrowserClient({
   supabaseUrl: env.PUBLIC_SUPABASE_URL,
   supabaseKey: env.PUBLIC_SUPABASE_ANON_KEY
-)
+})
 ```
 > Supakit does not support passing a custom `storageKey` to a browser client. Supakit uses the default storage key of `sb-<supabase_project_id>-auth-token`.
 
