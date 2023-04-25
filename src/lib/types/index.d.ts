@@ -1,4 +1,4 @@
-import type { AuthChangeEvent, Session, SupabaseClient, SupportedStorage } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, SupabaseClient, SupabaseClientOptions, SupportedStorage } from '@supabase/supabase-js'
 import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
@@ -6,7 +6,9 @@ import type { Handle } from '@sveltejs/kit'
 export type CookieOptions = {[key: string]: any}
 export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
+export type SupabaseClientOptionsWithoutAuth<T = 'public'> = Omit<SupabaseClientOptions<T>, 'auth'>
 
+export function createBrowserClient({ supabaseUrl, supabaseKey }: { supabaseUrl: string, supabaseKey: string }): SupabaseClient
 export function supakit(): Handle
 export function supakitLite(): Handle
 export function supabaseAuthStateChange(
