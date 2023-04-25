@@ -41,9 +41,7 @@ export const CookieStorage: SupportedStorage = {
 
         if (res.status === 200){
           const json: { cookie: any } = res.body ? await res.json() : { cookie: null }
-          if (json.cookie.access_token) {
-            cached_session = json.cookie
-          }
+          if (isAuthToken(key)) cached_session = json.cookie
 
           return json.cookie
         } else {
