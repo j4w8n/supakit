@@ -5,7 +5,7 @@ import type { SupabaseClientOptionsWithoutAuth } from '../types/index.js'
 export const createBrowserClient = <
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database ? 'public' : string & keyof Database
-> ({ supabaseUrl, supabaseKey, options }: {supabaseUrl: string; supabaseKey: string; options?: SupabaseClientOptionsWithoutAuth<SchemaName> }): SupabaseClient<Database, SchemaName> => {
+> (supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth<SchemaName>): SupabaseClient<Database, SchemaName> => {
   const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {
     ...options,
     global: {

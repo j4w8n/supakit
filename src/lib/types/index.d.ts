@@ -8,7 +8,7 @@ export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export type SupabaseClientOptionsWithoutAuth<T = 'public'> = Omit<SupabaseClientOptions<T>, 'auth'>
 
-export function createBrowserClient({ supabaseUrl, supabaseKey }: { supabaseUrl: string, supabaseKey: string }): SupabaseClient
+export function createBrowserClient(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth): SupabaseClient
 export function supakit(): Handle
 export function supakitLite(): Handle
 export function supabaseAuthStateChange(
