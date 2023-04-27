@@ -137,6 +137,30 @@ export const load = ({ locals: { session, supabase } }) => {
 }
 ```
 
+### Locals
+Supakit sets the following `event.locals`:
+
+```js
+/* Session info from Supabase */
+event.locals.session = {
+  provider_token,
+  provider_refresh_token,
+  access_token,
+  refresh_token,
+  expires_in,
+  expires_at,
+  token_type,
+  user
+}
+
+/* Supakit's server-side Supabase client */
+event.locals.supabase
+
+/* If you want to set your own cookies on the server-side, and use Supakit's or your custom options */
+event.locals.cookie_options
+```
+> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
+
 ## Further Reading and Options
 
 ### Create your own Supabase server client
@@ -300,30 +324,6 @@ export const yourHandler = (async ({ event, resolve }) => {
   return await resolve(event)
 }) satisfies Handle
 ```
-
-### Locals
-Supakit sets the following `event.locals`:
-
-```js
-/* Session info from Supabase */
-event.locals.session = {
-  provider_token,
-  provider_refresh_token,
-  access_token,
-  refresh_token,
-  expires_in,
-  expires_at,
-  token_type,
-  user
-}
-
-/* Supakit's server-side Supabase client */
-event.locals.supabase
-
-/* If you want to set your own cookies on the server-side, and use Supakit's or your custom options */
-event.locals.cookie_options
-```
-> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
 ## Protecting Routes
 
