@@ -13,7 +13,7 @@ export const createServerClient = <
       ...options?.global,
       headers: {
         ...options?.global?.headers,
-        'X-Client-Info': 'supakit@v1.0.0-next.111'
+        'X-Client-Info': 'supakit@v1.0.0-next.112'
       }
     },
     auth: {
