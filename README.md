@@ -164,7 +164,7 @@ event.locals.cookie_options
 ## Further Reading and Options
 
 ### Create your own Supabase server client
-We provide a server client, via `event.locals.supabase`. However, you're welcome to use your own; for example, if you want database types for your server-side client. Depending on your use-case, you might be able to disregard `event.locals.supabase` and the `Locals` [type](#types). If you're also not going to use any part of Supakit's `event.locals`, then you can use [Supakit Lite](#supakit-lite).
+We provide a server client, via `event.locals.supabase`. However, you're welcome to use your own; for example, if you want database types for your server-side client.
 
 ```ts
 /* hooks.server.ts */
