@@ -14,7 +14,7 @@ export const createBrowserClient = <
       ...options?.global,
       headers: {
         ...options?.global?.headers,
-        'X-Client-Info': 'supakit@v1.0.0-next.110'
+        'X-Client-Info': 'supakit@v1.0.0-next.111'
       }
     },
     auth: {
