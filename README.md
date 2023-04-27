@@ -42,16 +42,26 @@ declare global {
 }
 ```
 
+Per [Supabase docs](https://supabase.com/docs/reference/javascript/typescript-support), you can also add your database types to your client. For other options, beside linking, checkout the [docs](https://supabase.com/docs/reference/cli/supabase-gen-types-typescript). Be sure to adjust the output filepath, if needed.
+
+In your local CLI:
+```
+supabase link --project-ref <project-id>
+supabase gen types typescript --linked > src/lib/types/database.d.ts
+```
+
+See the below section to setup your client with these types.
+
 ### Browser client
-We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case.
+We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case. We're also passing-in generated types, from the above [supabase cli](https://supabase.com/docs/guides/cli) commands.
 
 ```ts
 /* some client-side file, for example src/lib/client.ts */
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { env } from '$env/dynamic/public'
 import { createBrowserClient } from 'supakit'
+import type { Database } from '$lib/types/database.d'
 
-export const supabase: SupabaseClient = createBrowserClient(
+export const supabase = createBrowserClient<Database>(
   env.PUBLIC_SUPABASE_URL,
   env.PUBLIC_SUPABASE_ANON_KEY
 )
@@ -130,7 +140,7 @@ export const load = ({ locals: { session, supabase } }) => {
 ## Further Reading and Options
 
 ### Create your own Supabase server client
-We provide a server client, via `event.locals.supabase`; but you're welcome to use your own. Depending on your use-case, you might be able to disregard `event.locals.supabase` and the `Locals` [type](#types). If you're also not going to use any part of Supakit's `event.locals`, then you can use [Supakit Lite](#supakit-lite)
+We provide a server client, via `event.locals.supabase`. However, you're welcome to use your own; for example, if you want database types for your server-side client. Depending on your use-case, you might be able to disregard `event.locals.supabase` and the `Locals` [type](#types). If you're also not going to use any part of Supakit's `event.locals`, then you can use [Supakit Lite](#supakit-lite)
 
 ### Store
 `getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
@@ -226,6 +236,10 @@ Supakit will set upto four cookies.
 - `sb-<crypto.randomUUID()>-csrf`
 
 `sb-<supabase_project_id>-auth-token` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be refreshed and updated by you. The csrf cookie is a session cookie, used to help secure the `/supakit` endpoint for cookie storage; and you may notice more than one.
+
+Setting httpOnly cookies is done by making route requests to the server, then returning a response with the `set-cookie` header. These requests are handled programmatically by Supakit. There is no need for you to create routes for this purpose.
+
+Supakit maintains a session cache inside it's custom `CookieStorage`. When retrieving a user session, for a call like `supabase.auth.getSession()` for example, Supakit will return the cached response as long as the session is not `null`; saving a trip to the server.
 
 > Supakit uses the special, programmed routes `/supakit` and `/supakitCSRF` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
 
