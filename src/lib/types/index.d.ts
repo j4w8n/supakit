@@ -14,6 +14,12 @@ export function createBrowserClient<
     ? 'public'
     : string & keyof Database
 >(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth): SupabaseClient<Database, SchemaName>
+export function createServerClient<
+  Database = any,
+  SchemaName extends string & keyof Database = 'public' extends keyof Database
+    ? 'public'
+    : string & keyof Database
+>(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth): SupabaseClient<Database, SchemaName>
 export function supakit(): Handle
 export function supakitLite(): Handle
 export function supabaseAuthStateChange(
