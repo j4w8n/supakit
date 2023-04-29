@@ -20,8 +20,6 @@ export function createServerClient<
     ? 'public'
     : string & keyof Database
 >(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth): SupabaseClient<Database, SchemaName>
-export function supakit(): Handle
-export function supakitLite(): Handle
 export function supabaseAuthStateChange(
   client: SupabaseClient,
   store?: Writable<Session | null> | null, 
@@ -32,3 +30,5 @@ export function getCookieOptions(): CookieSerializeOptions
 export function setCookieOptions({}: CookieSerializeOptions): void
 
 export const CookieStorage: SupportedStorage
+export const supakit: Handle
+export const supakitLite: Handle
