@@ -1,6 +1,6 @@
 {
 	"name": "supakit",
-	"version": "1.0.0-next.112",
+	"version": "1.0.0-next.113",
 	"scripts": {
 		"dev": "vite dev",
 		"build": "svelte-kit sync && svelte-package",
