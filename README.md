@@ -17,15 +17,31 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies.
 
 ## Bare Minimum
 
+We are assuming two things with our examples:
+
+1. You're using Typescript and generating database types to $lib/database.d.ts
+2. Your Supabase client is defined in $lib/client.ts
+
 ### Environment
 Create an `.env` file in the root of your project, with your `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY` values; and/or ensure these are set on your deployment platform.
 
 ### Types
-Ensure your app.d.ts file includes the supabase import, along with the `session` and `supabase` definitions. If you plan to set additional cookies on the server-side, and use the cookie options set by Supakit, you can install `@types/cookie` as a dev dependency, then add it's import and `cookie_options` definition to this file.
+Per [Supabase docs](https://supabase.com/docs/reference/javascript/typescript-support), you can also add your database types to your client. For other options, beside linking, checkout the [docs](https://supabase.com/docs/reference/cli/supabase-gen-types-typescript).
+
+In your local CLI:
+```
+supabase link --project-ref <project-id>
+supabase gen types typescript --linked > src/lib/database.d.ts
+```
+
+Ensure your app.d.ts file includes the following.
+
+> `cookie_options` is only needed if you plan to set additional cookies on the server-side and wanna use Supakit's cookie options. You'll need to install `@types/cookie` as a dev dependency. See [Cookie Options](#cookie-options) to learn how to change the defaults.
 
 ```ts
 /* src/app.d.ts */
 import { SupabaseClient, Session } from '@supabase/supabase-js'
+import { Database } from '$lib/database.d'
 import { CookieSerializeOptions } from '@types/cookie'
 
 declare global {
@@ -33,7 +49,7 @@ declare global {
     interface Locals {
       cookie_options: CookieSerializeOptions;
       session: Session | null;
-      supabase: SupabaseClient;
+      supabase: SupabaseClient<Database>;
     }
     interface PageData {
       session: Session | null;
@@ -42,24 +58,14 @@ declare global {
 }
 ```
 
-Per [Supabase docs](https://supabase.com/docs/reference/javascript/typescript-support), you can also add your database types to your client. For other options, beside linking, checkout the [docs](https://supabase.com/docs/reference/cli/supabase-gen-types-typescript). Be sure to adjust the output filepath, if needed.
-
-In your local CLI:
-```
-supabase link --project-ref <project-id>
-supabase gen types typescript --linked > src/lib/types/database.d.ts
-```
-
-See the below section to setup your client with these types.
-
 ### Browser client
-We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case. We're also passing-in generated types, from the above [supabase cli](https://supabase.com/docs/guides/cli) commands.
+We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case.
 
 ```ts
-/* some client-side file, for example src/lib/client.ts */
+/* src/lib/client.ts */
 import { env } from '$env/dynamic/public'
 import { createBrowserClient } from 'supakit'
-import type { Database } from '$lib/types/database.d'
+import type { Database } from '$lib/database.d'
 
 export const supabase = createBrowserClient<Database>(
   env.PUBLIC_SUPABASE_URL,
@@ -105,10 +111,10 @@ export const handle = supakitLite
 ```
 
 #### Using Supakit with your own handlers
-If you wanna take advantage of Supakit's cookies, event.locals, and server client in your handler, be sure to declare `supakit` first in your sequence.
+If you wanna take advantage of Supakit's cookies, event.locals, and/or server client in your handler, be sure to declare `supakit` first in your sequence.
 
 ```ts
-/* hooks.server.ts */
+/* src/hooks.server.ts */
 import { sequence } from '@sveltejs/kit/hooks'
 import type { Handle } from '@sveltejs/kit'
 import { supakit } from 'supakit'
@@ -162,30 +168,6 @@ event.locals.cookie_options
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
 ## Further Reading and Options
-
-### Create your own Supabase server client
-We provide a server client, via `event.locals.supabase`. However, you're welcome to use your own; for example, if you want database types for your server-side client.
-
-```ts
-/* hooks.server.ts */
-import { sequence } from '@sveltejs/kit/hooks'
-import type { Handle } from '@sveltejs/kit'
-import { supakit, createServerClient } from 'supakit'
-import { env } from '$env/dynamic/public'
-import type { Database } from '$lib/types/database.d'
-
-const yourHandler = (async ({ event, resolve }) => {
-  /* overwrite Supakit's server client */
-  event.locals.supabase = createServerClient<Database>(
-    env.PUBLIC_SUPABASE_URL,
-    env.PUBLIC_SUPABASE_ANON_KEY
-  )
-
-  return await resolve(event)
-}) satisfies Handle
-
-export const handle = sequence(supakit, yourHandler)
-```
 
 ### Store
 `getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
@@ -242,7 +224,7 @@ Type:
 supabaseAuthStateChange(
   client: SupabaseClient, 
   store?: Writable<Session | null> | null, 
-  callback?: (({ event, session }: { event: string, session: Session | null }) => void) | null
+  callback?: (({ event, session }: { event: string, session: Session | null }) => void)
 )
 ```
 
