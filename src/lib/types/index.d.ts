@@ -17,7 +17,7 @@ export function createBrowserClient<
 export function supabaseAuthStateChange(
   client: SupabaseClient,
   store?: Writable<Session | null> | null, 
-  callback?: StateChangeCallback | null
+  callback?: StateChangeCallback
 ): void
 export function getSession(): Writable<Session | null>
 export function getCookieOptions(): CookieSerializeOptions
