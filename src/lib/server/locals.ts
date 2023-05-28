@@ -30,7 +30,7 @@ export const locals = (async ({ event, resolve }) => {
   locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     global: {
       headers: {
-        'X-Client-Info': 'supakit@v1.0.0-next.114'
+        'X-Client-Info': 'supakit@v1.0.0-next.115'
       }
     },
     auth: {
