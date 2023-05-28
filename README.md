@@ -72,7 +72,6 @@ export const supabase = createBrowserClient<Database>(
   env.PUBLIC_SUPABASE_ANON_KEY
 )
 ```
-> Supakit does not support passing a custom `storageKey` to a browser client. Supakit uses the default storage key of `sb-<supabase_project_id>-auth-token`.
 
 ### Declare onAuthStateChange
 You'll need to pass-in your Supabase browser client as the first parameter.
@@ -168,6 +167,34 @@ event.locals.cookie_options
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
 ## Further Reading and Options
+
+### Supabase client options
+Pass in an object of `SupabaseClientOptions`, with a couple of exceptions, as the third parameter to `createBrowserClient`.
+
+Supakit does not support a custom `storageKey`, or passing in `auth` options except `flowType`.
+
+Example:
+```ts
+/* src/lib/client.ts */
+import { env } from '$env/dynamic/public'
+import { createBrowserClient } from 'supakit'
+import type { Database } from '$lib/database.d'
+
+export const supabase = createBrowserClient<Database>(
+  env.PUBLIC_SUPABASE_URL,
+  env.PUBLIC_SUPABASE_ANON_KEY,
+  {
+    global: {
+      headers: {
+        'Custom-Header': 'value'
+      }
+    },
+    auth: {
+      flowType: 'pkce'
+    }
+  }
+)
+```
 
 ### Store
 `getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
@@ -276,7 +303,7 @@ Because Supakit uses secure httpOnly cookie storage: setting, getting, and delet
 For the same reasons, Supakit will also set a non-httpOnly cookie of `sb-<crypto.randomUUID()>-csrf`; to help with CSRF protection during an initial page load or refresh. 
 
 #### Cookie Options
-You can set your own options by importing `setCookieOptions` into `hooks.server.ts`, then pass in an object of `SecureCookieOptions` - which is just [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts) minus `httpOnly`, since Supakit relies on `httpOnly` being `true`. Whatever you pass in will be merged with the defaults - overriding when appropriate. This function should be declared outside of the `handle` export.
+You can set your own options, via `createBrowserClient`, by passing in an object of `SecureCookieOptions` - which is just [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts) minus `httpOnly`, since Supakit relies on `httpOnly` being `true`. Whatever you pass in will be merged with the defaults - overriding when appropriate.
 
 Type:
 ```ts
@@ -293,14 +320,20 @@ Supakit Defaults:
 
 Example:
 ```ts
-import { setCookieOptions, supakit } from 'supakit'
+/* src/lib/client.ts */
+import { env } from '$env/dynamic/public'
+import { createBrowserClient } from 'supakit'
+import type { Database } from '$lib/database.d'
 
-setCookieOptions({
-  maxAge: 60 * 60 * 24 * 365 * 100,
-  sameSite: 'strict'
-})
-
-export const handle = supakit
+export const supabase = createBrowserClient<Database>(
+  env.PUBLIC_SUPABASE_URL,
+  env.PUBLIC_SUPABASE_ANON_KEY,
+  {}, // a Supabase client options object is the third parameter
+  {
+    maxAge: 60 * 60 * 24 * 365 * 100,
+    sameSite: 'strict'
+  }
+)
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.

@@ -14,7 +14,7 @@ export function createBrowserClient<
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
     : string & keyof Database
->(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithOnlyAuthFlowType): SupabaseClient<Database, SchemaName>
+>(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithOnlyAuthFlowType, cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>
 export function supabaseAuthStateChange(
   client: SupabaseClient,
   store?: Writable<Session | null> | null, 
