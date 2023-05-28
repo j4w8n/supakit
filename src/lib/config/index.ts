@@ -1,6 +1,6 @@
 import { merge } from '../utils.js'
 import type { CookieSerializeOptions } from 'cookie'
-import type { SecureCookieOptions } from 'supakit'
+import type { SecureCookieOptions } from '../types/index.js'
 
 const defaults = {
   path: '/',
