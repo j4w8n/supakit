@@ -6,15 +6,6 @@ import type { Handle } from '@sveltejs/kit'
 export type CookieOptions = {[key: string]: any}
 export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
-export type SupabaseClientOptionsWithOnlyAuthFlowType = Omit<SupabaseClientOptions<SchemaName>, 'auth'> & {
-  auth?: { flowType?: AuthFlowType }
-}
-export function createBrowserClient<
-  Database = any,
-  SchemaName extends string & keyof Database = 'public' extends keyof Database
-    ? 'public'
-    : string & keyof Database
->(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithOnlyAuthFlowType, cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>
 export function supabaseAuthStateChange(
   client: SupabaseClient,
   store?: Writable<Session | null> | null, 
@@ -27,3 +18,23 @@ export function setCookieOptions({}: CookieSerializeOptions): void
 export const CookieStorage: SupportedStorage
 export const supakit: Handle
 export const supakitLite: Handle
+
+/* from @supabase/supabase-js */
+export type SupabaseClientOptionsWithoutAuth<SchemaName = 'public'> = Omit<
+	SupabaseClientOptions<SchemaName>,
+	'auth'
+>
+export type GenericSchema = {
+  Tables: Record<string, GenericTable>
+  Views: Record<string, GenericView>
+  Functions: Record<string, GenericFunction>
+}
+export function createBrowserClient<
+  Database = any,
+  SchemaName extends string & keyof Database = 'public' extends keyof Database
+    ? 'public'
+    : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any
+>(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth, cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>

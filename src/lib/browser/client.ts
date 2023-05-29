@@ -1,27 +1,33 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient, type SupportedStorage } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
 import { setCookieOptions } from '../config/index.js'
-import type { SupabaseClientOptionsWithOnlyAuthFlowType, SecureCookieOptions } from '../types/index.js'
+import type { SupabaseClientOptionsWithoutAuth, SecureCookieOptions, GenericSchema } from '../types/index.js'
 
+/* mostly from @supabase/supabase-js */
 export const createBrowserClient = <
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
-    : string & keyof Database
->(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithOnlyAuthFlowType, cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName> => {
-  if (cookie_options) setCookieOptions(cookie_options)
-  const client = createClient<Database, SchemaName>(supabaseUrl, supabaseKey, {
-    ...options,
-    global: {
-      ...options?.global,
-      headers: {
-        ...options?.global?.headers,
-        'X-Client-Info': 'supakit@v1.0.0-next.115'
-      }
-    },
+    : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any
+>(
+  supabaseUrl: string,
+  supabaseKey: string,
+  options?: SupabaseClientOptionsWithoutAuth<SchemaName> & { 
     auth: {
-      storage: CookieStorage
+      storage: SupportedStorage
+    }
+  },
+  cookie_options?: SecureCookieOptions
+): SupabaseClient<Database, SchemaName> => {
+  if (cookie_options) setCookieOptions(cookie_options)
+  return createClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+    ...options,
+    auth: {
+      storage: options?.auth.storage ?? CookieStorage,
+      flowType: 'pkce'
     }
   })
-  return client
 }

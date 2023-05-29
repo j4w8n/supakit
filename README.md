@@ -171,7 +171,7 @@ event.locals.cookie_options
 ### Supabase client options
 Pass in an object of `SupabaseClientOptions`, with a couple of exceptions, as the third parameter to `createBrowserClient`.
 
-Supakit does not support a custom `storageKey`, or passing in `auth` options except `flowType`.
+Supakit does not support a custom `storageKey`, or passing in `auth` options except `storage`.
 
 Example:
 ```ts
@@ -190,7 +190,7 @@ export const supabase = createBrowserClient<Database>(
       }
     },
     auth: {
-      flowType: 'pkce'
+      storage: yourCustomStorage
     }
   }
 )
