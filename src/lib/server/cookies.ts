@@ -51,10 +51,11 @@ export const cookies = (async ({ event, resolve }) => {
       const body = request.body ? await request.json() : null
       if (body) {
         const response = new Response(null)
+        const data = JSON.parse(body.value) ?? body.value
 
         response.headers.append('set-cookie', cookies.serialize(body.key, body.value, cookie_options))
-        if (body.value.provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(body.value.provider_token), cookie_options))
-        if (body.value.provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(body.value.provider_refresh_token), cookie_options))
+        if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), cookie_options))
+        if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), cookie_options))
         
         return response
       } else {
