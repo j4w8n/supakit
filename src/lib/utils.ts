@@ -3,6 +3,11 @@ import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
 export const browser = () => typeof document !== 'undefined'
 
+export const isAuthToken = (name: string) => {
+  const regex = /^sb-.*-auth-token$/
+  return regex.test(name)
+}
+
 export const merge = (current: CookieOptions, updates: CookieOptions): CookieOptions => {
   if (updates) {
     for (let key of Object.keys(updates)) {

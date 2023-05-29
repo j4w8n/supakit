@@ -1,6 +1,6 @@
 import { getCookieOptions } from '../config/index.js'
 import { json, type Handle } from "@sveltejs/kit"
-import { csrf_check } from '../utils.js'
+import { csrf_check, isAuthToken } from '../utils.js'
 
 export const cookies = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
@@ -71,8 +71,10 @@ export const cookies = (async ({ event, resolve }) => {
       const response = new Response(null, { status: 204 })
 
       response.headers.append('set-cookie', cookies.serialize(body.key, '', expire_options))
-      if (cookies.get('sb-provider-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', '', expire_options))
-      if (cookies.get('sb-provider-refresh-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', '', expire_options))
+      if (isAuthToken(body.key)) {
+        if (cookies.get('sb-provider-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', '', expire_options))
+        if (cookies.get('sb-provider-refresh-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', '', expire_options))
+      }
       
       return response
     }

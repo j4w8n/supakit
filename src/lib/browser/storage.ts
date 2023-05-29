@@ -1,6 +1,6 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
 import { getCookieOptions } from '../config/index.js'
-import { browser } from '../utils.js'
+import { browser, isAuthToken } from '../utils.js'
 import { serialize } from 'cookie'
 
 let token = ''
@@ -15,11 +15,6 @@ const setCSRF = () => {
   token = crypto.randomUUID()
   name = crypto.randomUUID()
   return { token, name }
-}
-
-const isAuthToken = (name: string) => {
-  const regex = /^sb-.*-auth-token$/
-  return regex.test(name)
 }
 
 export const CookieStorage: SupportedStorage = {
