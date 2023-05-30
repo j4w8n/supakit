@@ -37,4 +37,13 @@ export function createBrowserClient<
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
     : any
->(supabaseUrl: string, supabaseKey: string, options?: SupabaseClientOptionsWithoutAuth, cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>
+>(
+  supabaseUrl: string, 
+  supabaseKey: string, 
+  options?: SupabaseClientOptionsWithoutAuth & {
+    auth?: {
+      storage?: SupportedStorage;
+      storageKey?: string;
+    }
+  }, 
+  cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>
