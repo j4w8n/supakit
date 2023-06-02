@@ -197,8 +197,8 @@ export const supabase = createBrowserClient<Database>(
 )
 ```
 
-### Store
-`getSession()` manages a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. It has nothing to do with Supabase's `auth.getSession()` call. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
+### Session Store
+`getSessionStore()` is a secure, session store using Svelte's [context](https://svelte.dev/docs#run-time-svelte-setcontext) API. If you pass the store into `supabaseAuthStateChange()`, Supakit will automatically hydrate the store with the returned Supabase `session` info after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events - giving you immediate reactivity for any part of your app that relies on the value of the store.
 
 To hydrate the store during initial load and page refreshes, you can populate the store with returned server data.
 
@@ -207,11 +207,11 @@ Setup
 <!-- +layout.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { getSession, supabaseAuthStateChange } from 'supakit'
+  import { getSessionStore, supabaseAuthStateChange } from 'supakit'
   import { supabase } from '$lib/client'
 
   export let data
-  const session = getSession()
+  const session_store = getSessionStore()
 
   /**
    * data.session assumes you return `session` from a file 
@@ -220,10 +220,10 @@ Setup
    *   session: event.locals.session
    * }
    */
-  $session = data.session
+  $session_store = data.session
 
   onMount(() => {
-    supabaseAuthStateChange(supabase, session)
+    supabaseAuthStateChange(supabase, session_store)
   })
 </script>
 ```
@@ -231,12 +231,12 @@ Page Usage
 ```svelte
 <!-- +page.svelte -->
 <script lang="ts">
-  import { getSession } from 'supakit'
-  const session = getSession()
+  import { getSessionStore } from 'supakit'
+  const session_store = getSessionStore()
 </script>
 
-{#if $session}
-  <h4>Your id is {$session.user.id}</h4>
+{#if $session_store}
+  <h4>Your id is {$session_store.user.id}</h4>
 {/if}
 ```
 
@@ -262,16 +262,19 @@ Example:
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
-  import { getSession, supabaseAuthStateChange } from 'supakit'
+  import { getSessionStore, supabaseAuthStateChange } from 'supakit'
   import { supabase } from '$lib/client'
 
   export let data
+  const session_store = getSessionStore()
 
   /**
-   * We're using session_store, to differentiate between it and 
-   * Supabase's returned session; but this isn't required.
+   * data.session assumes you return `session` from a file 
+   * like +layout.server.ts or +layout.ts with code such as:
+   * return {
+   *   session: event.locals.session
+   * }
    */
-  const session_store = getSession()
   $session_store = data.session
 
   onMount(() => {
@@ -290,7 +293,7 @@ Supakit will set upto four cookies.
 - `sb-provider-refresh-token`
 - `sb-<crypto.randomUUID()>-csrf`
 
-`sb-<supabase_project_id>-auth-token` is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be refreshed and updated by you. The csrf cookie is a session cookie, used to help secure the `/supakit` endpoint for cookie storage; and you may notice more than one.
+`sb-<supabase_project_id>-auth-token`, or your custom storage key, is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be refreshed and updated by you. The csrf cookie is a session cookie, used to help secure the `/supakit` endpoint for cookie storage; and you may notice more than one.
 
 Setting httpOnly cookies is done by making route requests to the server, then returning a response with the `set-cookie` header. These requests are handled programmatically by Supakit. There is no need for you to create routes for this purpose.
 
@@ -342,7 +345,7 @@ export const supabase = createBrowserClient<Database>(
 
 If you need to set cookies yourself, you can import `getCookieOptions()` or use `event.locals.cookie_options` if available.
 
-Example:
+Examples:
 ```ts
 import { getCookieOptions } from 'supakit'
 
