@@ -11,7 +11,7 @@ export function supabaseAuthStateChange(
   store?: Writable<Session | null> | null, 
   callback?: StateChangeCallback
 ): void
-export function getSession(): Writable<Session | null>
+export function getSessionStore(): Writable<Session | null>
 export function getCookieOptions(): CookieSerializeOptions
 export function setCookieOptions({}: CookieSerializeOptions): void
 
