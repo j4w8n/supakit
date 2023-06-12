@@ -1,12 +1,13 @@
 import { getCookieOptions } from '../config/index.js'
 import { json, type Handle } from "@sveltejs/kit"
 import { csrf_check, isAuthToken } from '../utils.js'
+import { base } from '$app/paths'
 
 export const cookies = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
   const cookie_options = getCookieOptions()
 
-  if (url.pathname === '/supakitCSRF') {
+  if (url.pathname === `${base}/supakitCSRF`) {
     const forbidden = csrf_check(event)
     if (forbidden) return forbidden
 
@@ -27,7 +28,7 @@ export const cookies = (async ({ event, resolve }) => {
   }
   
   /* Handle request to Supakit's cookie route */
-  if (url.pathname === '/supakit') {
+  if (url.pathname === `${base}/supakit`) {
     const forbidden = csrf_check(event)
     if (forbidden) return forbidden
 
