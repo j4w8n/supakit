@@ -1,7 +1,7 @@
 /// <reference types="@sveltejs/kit" />
 
 import type { SupabaseClient, Session } from "@supabase/supabase-js"
-import type { CookieSerializeOptions } from "cookie"
+import type { SecureCookieOptions } from "./lib/types/index"
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
@@ -11,7 +11,7 @@ declare global {
 		interface Locals {
 			session: Session | null;
 			supabase: SupabaseClient;
-			cookie_options: CookieSerializeOptions;
+			cookie_options: SecureCookieOptions;
 		}
 		// interface PageData {}
 		// interface Error {}

@@ -3,8 +3,8 @@ import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
 
-export type CookieOptions = {[key: string]: any}
-export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
+export type GenericCookieOptions = {[key: string]: any}
+export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly"> & { name?: string }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export function supabaseAuthStateChange(
   client: SupabaseClient,
@@ -12,8 +12,8 @@ export function supabaseAuthStateChange(
   callback?: StateChangeCallback
 ): void
 export function getSessionStore(): Writable<Session | null>
-export function getCookieOptions(): CookieSerializeOptions
-export function setCookieOptions({}: CookieSerializeOptions): void
+export function getCookieOptions(): SecureCookieOptions
+export function setCookieOptions({}: SecureCookieOptions): void
 
 export const CookieStorage: SupportedStorage
 export const supakit: Handle
@@ -40,10 +40,6 @@ export function createBrowserClient<
 >(
   supabaseUrl: string, 
   supabaseKey: string, 
-  options?: SupabaseClientOptionsWithoutAuth & {
-    auth?: {
-      storage?: SupportedStorage;
-      storageKey?: string;
-    }
-  }, 
-  cookie_options?: SecureCookieOptions): SupabaseClient<Database, SchemaName>
+  options?: SupabaseClientOptionsWithoutAuth, 
+  cookie_options?: SecureCookieOptions & { name: string }
+): SupabaseClient<Database, SchemaName>

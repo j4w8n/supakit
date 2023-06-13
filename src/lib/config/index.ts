@@ -1,15 +1,14 @@
 import { merge } from '../utils.js'
-import type { CookieSerializeOptions } from 'cookie'
 import type { SecureCookieOptions } from '../types/index.js'
 
 const defaults = {
   path: '/',
   maxAge: 60 * 60 * 24 * 365
 }
-let cookie_options: CookieSerializeOptions
+let cookie_options: SecureCookieOptions
 let storage_key: string
 
-export const getCookieOptions = (): CookieSerializeOptions => {
+export const getCookieOptions = (): SecureCookieOptions => {
   return cookie_options ?? defaults
 }
 

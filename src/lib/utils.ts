@@ -1,15 +1,15 @@
-import type { CookieOptions } from './types/index.js'
+import type { GenericCookieOptions, SecureCookieOptions } from './types/index.js'
 import { getStorageKey } from './config/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
-export const browser = () => typeof document !== 'undefined'
+export const isBrowser = () => typeof document !== 'undefined'
 
 export const isAuthToken = (name: string) => {
   const regex = /^sb-.*-auth-token$/
   return name === getStorageKey() || regex.test(name)
 }
 
-export const merge = (current: CookieOptions, updates: CookieOptions): CookieOptions => {
+export const merge = (current: GenericCookieOptions, updates: GenericCookieOptions): SecureCookieOptions => {
   if (updates) {
     for (let key of Object.keys(updates)) {
       if (!current.hasOwnProperty(key) || typeof updates[key] !== 'object') current[key] = updates[key];

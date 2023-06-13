@@ -1,6 +1,6 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
 import { getCookieOptions } from '../config/index.js'
-import { browser, isAuthToken } from '../utils.js'
+import { isBrowser, isAuthToken } from '../utils.js'
 import { serialize } from 'cookie'
 
 let token = ''
@@ -19,7 +19,7 @@ const setCSRF = () => {
 
 export const CookieStorage: SupportedStorage = {
   async getItem(key) {
-    if (!browser()) return null
+    if (!isBrowser()) return null
     if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
     let csrf = getCSRF()
 
@@ -84,7 +84,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   async setItem(key, value) {
-    if (!browser()) return
+    if (!isBrowser()) return
     if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
@@ -103,7 +103,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   async removeItem(key) {
-    if (!browser()) return
+    if (!isBrowser()) return
     if (isAuthToken(key)) cached_session = null
     const csrf = getCSRF()
     try {

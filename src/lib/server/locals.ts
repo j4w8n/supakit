@@ -3,6 +3,7 @@ import { createClient, type Session } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 import { decodeBase64URL } from '../utils.js'
 import { getCookieOptions } from '../config/index.js'
+import { CookieStorage } from "./storage.js"
 
 export const locals = (async ({ event, resolve }) => {
   const { cookies, locals } = event
@@ -16,6 +17,8 @@ export const locals = (async ({ event, resolve }) => {
   // get jwt info
   const token = session ? JSON.parse(decodeBase64URL(session.access_token.split('.')[1])) : null
   
+  locals.cookie_options = getCookieOptions()
+
   locals.session = session ? {
     provider_token,
     provider_refresh_token,
@@ -29,9 +32,11 @@ export const locals = (async ({ event, resolve }) => {
 
   locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     auth: {
-      persistSession: false,
       autoRefreshToken: false,
-      detectSessionInUrl: false
+      detectSessionInUrl: false,
+      ...(locals.cookie_options?.name ? { storageKey: locals.cookie_options.name } : {}),
+      storage: new CookieStorage({ cookies, locals }),
+      flowType: 'pkce'
     }
   })
 
@@ -41,8 +46,6 @@ export const locals = (async ({ event, resolve }) => {
       refresh_token: session.refresh_token 
     })
   }
-
-  locals.cookie_options = getCookieOptions()
 
   return await resolve(event)
 }) satisfies Handle
