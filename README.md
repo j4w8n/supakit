@@ -307,11 +307,11 @@ Because Supakit uses secure httpOnly cookie storage: setting, getting, and delet
 For the same reasons, Supakit will also set a non-httpOnly cookie of `sb-<crypto.randomUUID()>-csrf`; to help with CSRF protection during an initial page load or refresh. 
 
 #### Cookie Options
-You can set your own options, via `createBrowserClient`, by passing in an object of `SecureCookieOptions` - which is just [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts) minus `httpOnly`, since Supakit relies on `httpOnly` being `true`. Whatever you pass in will be merged with the defaults - overriding when appropriate.
+You can set your own options, via `createBrowserClient`, by passing in an object of `SecureCookieOptions` - which is just [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts) minus `httpOnly`, since Supakit relies on `httpOnly` being `true` - and `name` for a custom storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate.
 
 Type:
 ```ts
-type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly">
+type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly"> & { name?: string }
 ```
 
 Supakit Defaults:
@@ -335,7 +335,8 @@ export const supabase = createBrowserClient<Database>(
   {}, // a Supabase client options object is the third parameter
   {
     maxAge: 60 * 60 * 24 * 365 * 100,
-    sameSite: 'strict'
+    sameSite: 'strict',
+    name: 'your-custom-storage-key' // replaces `sb-<supabase_project_id>-auth-token`
   }
 )
 ```
