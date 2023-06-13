@@ -2,6 +2,7 @@ import type { SupportedStorage } from '@supabase/supabase-js'
 import { getCookieOptions } from '../config/index.js'
 import { isBrowser, isAuthToken } from '../utils.js'
 import { serialize } from 'cookie'
+import { base } from '$app/paths'
 
 let token = ''
 let name = ''
@@ -25,7 +26,7 @@ export const CookieStorage: SupportedStorage = {
 
     const getCookie = async () => {
       try {
-        const res = await fetch('/supakit', {
+        const res = await fetch(`${base}/supakit`, {
           method: 'GET',
           headers: {
             'x-csrf-token': csrf.token,
@@ -67,7 +68,7 @@ export const CookieStorage: SupportedStorage = {
       })
 
       try {
-        const res = await fetch('/supakitCSRF', {
+        const res = await fetch(`${base}/supakitCSRF`, {
           method: 'POST',
           body: JSON.stringify(csrf)
         })
@@ -88,7 +89,7 @@ export const CookieStorage: SupportedStorage = {
     if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
-      const res = await fetch('/supakit', {
+      const res = await fetch(`${base}/supakit`, {
         method: 'POST',
         body: JSON.stringify({ key, value }),
         headers: {
@@ -107,7 +108,7 @@ export const CookieStorage: SupportedStorage = {
     if (isAuthToken(key)) cached_session = null
     const csrf = getCSRF()
     try {
-      const res = await fetch('/supakit', {
+      const res = await fetch(`${base}/supakit`, {
         method: 'DELETE',
         body: JSON.stringify({ key }),
         headers: {
