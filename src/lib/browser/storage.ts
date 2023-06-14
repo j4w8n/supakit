@@ -18,6 +18,9 @@ const setCSRF = () => {
   return { token, name }
 }
 
+const cookie_route = `${base}/supakit/cookie`
+const csrf_route = `${base}/supakit/csrf`
+
 export const CookieStorage: SupportedStorage = {
   async getItem(key) {
     if (!isBrowser()) return null
@@ -26,7 +29,7 @@ export const CookieStorage: SupportedStorage = {
 
     const getCookie = async () => {
       try {
-        const res = await fetch(`${base}/supakit`, {
+        const res = await fetch(cookie_route, {
           method: 'GET',
           headers: {
             'x-csrf-token': csrf.token,
@@ -68,7 +71,7 @@ export const CookieStorage: SupportedStorage = {
       })
 
       try {
-        const res = await fetch(`${base}/supakitCSRF`, {
+        const res = await fetch(csrf_route, {
           method: 'POST',
           body: JSON.stringify(csrf)
         })
@@ -89,7 +92,7 @@ export const CookieStorage: SupportedStorage = {
     if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCSRF()
     try {
-      const res = await fetch(`${base}/supakit`, {
+      const res = await fetch(cookie_route, {
         method: 'POST',
         body: JSON.stringify({ key, value }),
         headers: {
@@ -108,7 +111,7 @@ export const CookieStorage: SupportedStorage = {
     if (isAuthToken(key)) cached_session = null
     const csrf = getCSRF()
     try {
-      const res = await fetch(`${base}/supakit`, {
+      const res = await fetch(cookie_route, {
         method: 'DELETE',
         body: JSON.stringify({ key }),
         headers: {
