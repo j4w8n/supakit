@@ -4,7 +4,7 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies.
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
 - Provides a callback route for server-side auth.
-- Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur.
+- Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur. The `invalidate()` method is an alternative to this.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 - Option to not use server-side features.
 
