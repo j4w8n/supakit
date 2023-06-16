@@ -3,6 +3,7 @@ A Supabase auth helper for SvelteKit. Relies on browser cookies.
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
+- Provides a callback route for server-side auth.
 - Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 - Option to not use server-side features.
@@ -36,20 +37,20 @@ supabase gen types typescript --linked > src/lib/database.d.ts
 
 Ensure your app.d.ts file includes the following.
 
-> `cookie_options` is only needed if you plan to set additional cookies on the server-side and wanna use Supakit's cookie options. You'll need to install `@types/cookie` as a dev dependency. See [Cookie Options](#cookie-options) to learn how to change the defaults.
+> `cookie_options` is only needed if you plan to set additional cookies on the server-side and wanna use Supakit's cookie options, or if you pass in custom cookie options. See [Cookie Options](#cookie-options) to learn how to change the defaults.
 
 ```ts
 /* src/app.d.ts */
 import { SupabaseClient, Session } from '@supabase/supabase-js'
 import { Database } from '$lib/database.d'
-import { CookieSerializeOptions } from '@types/cookie'
+import { SecureCookieoptions } from 'supakit'
 
 declare global {
   namespace App {
     interface Locals {
-      cookie_options: CookieSerializeOptions;
+      cookie_options: SecureCookieOptions;
       session: Session | null;
-      supabase: SupabaseClient<Database>;
+      supabase: SupabaseClient<Database> | null;
     }
     interface PageData {
       session: Session | null;
@@ -90,7 +91,7 @@ You'll need to pass-in your Supabase browser client as the first parameter.
 ```
 
 ### Server hooks
-Handles cookies, setting `event.locals`, and initializing the Supabase server client.
+Handles endpoints, setting `event.locals`, and initializing the Supabase server client.
 
 ```ts
 /* hooks.server.ts */
@@ -127,8 +128,8 @@ const yourHandler = (async ({ event, resolve }) => {
 export const handle = sequence(supakit, yourHandler)
 ```
 
-### Server-side usage
-The built-in Supabase server client relies on `$env/dynamic/public`. It also sets `persistSession`, `autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the browser client; nor will any updated data sync with the client-side, until the next server request.
+### Server-side client
+The built-in Supabase server client relies on `$env/dynamic/public`. It also sets`autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the browser client; nor will any updated data sync with the client-side, until the next server request.
 
 ```ts
 /* some server-side load file, for example +layout.server.ts */
@@ -140,6 +141,34 @@ export const load = ({ locals: { session, supabase } }) => {
     session
   }
 }
+```
+
+### Server-side auth
+Supakit provides an endpoint for handling the `exchangeCodeForSessionFor` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects.
+
+```ts
+const { data, error } = await supabase.auth.signInWithOAuth({ 
+  provider,
+  options: {
+    redirectTo: `${url.origin}/supakit/callback?next=/app`
+  }
+})
+
+/* handle error */
+
+if (data.url) throw redirect(303, data.url)
+```
+
+```ts
+const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: { 
+    emailRedirectTo: `${url.origin}/supakit/callback?next=/app` 
+  }
+})
+
+/* handle error */
 ```
 
 ### Locals
@@ -169,9 +198,9 @@ event.locals.cookie_options
 ## Further Reading and Options
 
 ### Supabase client options
-Pass in an object of `SupabaseClientOptions`, with a couple of exceptions, as the third parameter to `createBrowserClient`.
+Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createBrowserClient`.
 
-Supakit does not support passing in `auth` options, except `storage` and `storageKey`.
+Supakit does not support passing in `auth` options, but you can declare a custom storage key with (#cookie-options).
 
 Example:
 ```ts
@@ -189,9 +218,8 @@ export const supabase = createBrowserClient<Database>(
         'Custom-Header': 'value'
       }
     },
-    auth: {
-      storage: yourCustomStorage,
-      storageKey: 'your-key'
+    db: {
+      schema: 'public'
     }
   }
 )
@@ -307,7 +335,7 @@ Because Supakit uses secure httpOnly cookie storage: setting, getting, and delet
 For the same reasons, Supakit will also set a non-httpOnly cookie of `sb-<crypto.randomUUID()>-csrf`; to help with CSRF protection during an initial page load or refresh. 
 
 #### Cookie Options
-You can set your own options, via `createBrowserClient`, by passing in an object of `SecureCookieOptions` - which is just [CookieSerializeOptions](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/cookie/index.d.ts) minus `httpOnly`, since Supakit relies on `httpOnly` being `true` - and `name` for a custom storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate.
+You can set your own options, via `createBrowserClient`, by passing in an object of `SecureCookieOptions` plus `name` for a custom cookie storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate.
 
 Type:
 ```ts
@@ -342,9 +370,9 @@ export const supabase = createBrowserClient<Database>(
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
-> The only exception, for passing in your own cookie options, is that we discourge setting `httpOnly`. Supakit relies on this value to be `true` for better cookie security. Typescript will show an error if you try to pass it in.
+> Supakit relies on the `httpOnly` value to be `true` for better cookie security. Typescript will show an error if you try to pass it in.
 
-If you need to set cookies yourself, you can import `getCookieOptions()` or use `event.locals.cookie_options` if available.
+If you need to set your own cookies, you can import `getCookieOptions()` on the client or server side, or use `event.locals.cookie_options` on the server-side.
 
 Examples:
 ```ts
