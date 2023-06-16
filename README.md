@@ -129,7 +129,7 @@ export const handle = sequence(supakit, yourHandler)
 ```
 
 ### Server-side client
-The built-in Supabase server client relies on `$env/dynamic/public`. It also sets`autoRefreshToken` and `detectSessionInUrl` to `false`. The currently logged-in user is automatically "signed in" to this client; so any further auth calls, like `getSession()`, `updateUser()`, etc will work on the server-side - just be aware that no `onAuthStateChange()` events will reach the browser client; nor will any updated data sync with the client-side, until the next server request.
+The built-in Supabase server client relies on `$env/dynamic/public`. If there is a logged-in user, they're automatically "signed in" to this client.
 
 ```ts
 /* some server-side load file, for example +layout.server.ts */
@@ -144,7 +144,7 @@ export const load = ({ locals: { session, supabase } }) => {
 ```
 
 ### Server-side auth
-Supakit provides an endpoint for handling the `exchangeCodeForSessionFor` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects.
+Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects.
 
 ```ts
 const { data, error } = await supabase.auth.signInWithOAuth({ 
