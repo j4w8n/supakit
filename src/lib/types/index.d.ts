@@ -41,5 +41,5 @@ export function createBrowserClient<
   supabaseUrl: string, 
   supabaseKey: string, 
   options?: SupabaseClientOptionsWithoutAuth, 
-  cookie_options?: SecureCookieOptions & { name: string }
+  cookie_options?: SecureCookieOptions
 ): SupabaseClient<Database, SchemaName>
