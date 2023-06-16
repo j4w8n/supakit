@@ -1,21 +1,67 @@
 import { getCookieOptions } from '../config/index.js'
-import { json, type Handle, redirect } from "@sveltejs/kit"
+import { json, type Handle } from "@sveltejs/kit"
+import { createClient } from "@supabase/supabase-js"
 import { csrf_check, isAuthToken } from '../utils.js'
 import { base } from '$app/paths'
+import { env } from '$env/dynamic/public'
+import { CookieStorage } from "./storage.js"
 
 export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
   const cookie_options = getCookieOptions()
 
-  if (url.pathname === `${base}/supakit/callback`) {
+  if (url.pathname === `${base}/supakit/callback` && request.method === 'GET') {
     const code = url.searchParams.get('code')
+
+    /* post-auth redirect */
     const next = url.searchParams.get('next') ?? '/'
 
-    if (code) {
-      await event.locals.supabase.auth.exchangeCodeForSession(code)
-    }
+    const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
+      auth: {
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        ...(cookie_options?.name ? { storageKey: cookie_options.name } : {}),
+        storage: new CookieStorage({ cookies, locals: { cookie_options, session: null, supabase: null } }),
+        flowType: 'pkce'
+      }
+    })
 
-    throw redirect(303, `${base}${next}`)
+    /* redirect, with cookies */
+    const response = new Response(null, {
+      status: 303,
+      headers: {
+        Location: `${url.origin}${base}${next}`
+      }
+    })
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        console.error(error)
+        throw error
+      }
+      const existing_cookies = cookies.getAll()
+      const code_verifier_regex = /^.*-code-verifier$/
+      const provider_token: string | null = data.session?.provider_token ?? null
+      const provider_refresh_token: string | null = data.session?.provider_refresh_token ?? null
+
+      existing_cookies.forEach(cookie => {
+        if (code_verifier_regex.test(cookie.name)) {
+          /* set auth code verifier cookie to expire */
+          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, {
+            ...cookie_options,
+            maxAge: -1
+          }))
+        } else {
+          /* add all other cookies */
+          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
+        }
+      })
+
+      /* set provider cookies, if exist */
+      if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), cookie_options))
+      if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), cookie_options))
+    }
+    return response
   }
 
   if (url.pathname === `${base}/supakit/csrf`) {
@@ -31,7 +77,7 @@ export const endpoints = (async ({ event, resolve }) => {
       const cookie_name = data.name
 
       const response = new Response(null)
-      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token))
+      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, cookie_options))
       return response
     }
 
