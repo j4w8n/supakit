@@ -19,11 +19,14 @@ export const CookieStorage: SupportedStorage
 export const supakit: Handle
 export const supakitLite: Handle
 
-/* from @supabase/supabase-js */
-export type SupabaseClientOptionsWithoutAuth<SchemaName = 'public'> = Omit<
+export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 	SupabaseClientOptions<SchemaName>,
 	'auth'
->
+> & {
+  auth: {
+    flowType: AuthFlowType
+  }
+}
 export type GenericSchema = {
   Tables: Record<string, GenericTable>
   Views: Record<string, GenericView>
@@ -40,6 +43,6 @@ export function createBrowserClient<
 >(
   supabaseUrl: string, 
   supabaseKey: string, 
-  options?: SupabaseClientOptionsWithoutAuth, 
+  options?: SupabaseClientOptionsWithLimitedAuth, 
   cookie_options?: SecureCookieOptions
 ): SupabaseClient<Database, SchemaName>
