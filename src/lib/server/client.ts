@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
-import { setCookieOptions } from '../config/index.js'
+import { getCookieOptions, setCookieOptions } from '../config/index.js'
 import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptionsPlusName, GenericSchema } from '../types/index.js'
 import type { RequestEvent } from '@sveltejs/kit'
 
@@ -20,11 +20,15 @@ export const createServerClient = <
   options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
   cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName> => {
-  if (cookie_options) setCookieOptions(cookie_options)
   const { cookies, locals } = event
+  if (cookie_options) setCookieOptions(cookie_options)
+  locals.cookie_options = getCookieOptions()
+  
   return createClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
     ...options,
     auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
       storage: new CookieStorage({ cookies, locals }),
       flowType: options?.auth.flowType ?? 'pkce',
       ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
