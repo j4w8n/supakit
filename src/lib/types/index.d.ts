@@ -3,8 +3,9 @@ import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
 
+export type MaybeResponse = void | Response
 export type GenericCookieOptions = {[key: string]: any}
-export type SecureCookieOptions = Omit<CookieSerializeOptions, "httpOnly"> & { name?: string }
+export type SecureCookieOptionsPlusName = Omit<CookieSerializeOptions, "httpOnly"> & { name?: string }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export function supabaseAuthStateChange(
   client: SupabaseClient,
@@ -12,12 +13,12 @@ export function supabaseAuthStateChange(
   callback?: StateChangeCallback
 ): void
 export function getSessionStore(): Writable<Session | null>
-export function getCookieOptions(): SecureCookieOptions
-export function setCookieOptions({}: SecureCookieOptions): void
+export function getCookieOptions(): SecureCookieOptionsPlusName
+export function setCookieOptions({}: SecureCookieOptionsPlusName): void
 
 export const CookieStorage: SupportedStorage
-export const supakit: Handle
-export const supakitLite: Handle
+export function supakit(event: RequestEvent): Promise<MaybeResponse>
+export function supakitLite(event: RequestEvent): Promise<MaybeResponse>
 
 export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 	SupabaseClientOptions<SchemaName>,
@@ -44,5 +45,20 @@ export function createBrowserClient<
   supabaseUrl: string, 
   supabaseKey: string, 
   options?: SupabaseClientOptionsWithLimitedAuth, 
-  cookie_options?: SecureCookieOptions
+  cookie_options?: SecureCookieOptionsPlusName
+): SupabaseClient<Database, SchemaName>
+export function createServerClient<
+  Database = any,
+  SchemaName extends string & keyof Database = 'public' extends keyof Database
+    ? 'public'
+    : string & keyof Database,
+  Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
+    ? Database[SchemaName]
+    : any
+>(
+  supabaseUrl: string,
+  supabaseKey: string,
+  event: RequestEvent,
+  options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
+  cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName>

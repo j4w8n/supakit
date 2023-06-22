@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
 import { setCookieOptions } from '../config/index.js'
-import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptions, GenericSchema } from '../types/index.js'
+import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptionsPlusName, GenericSchema } from '../types/index.js'
 
 /* mostly from @supabase/supabase-js */
 export const createBrowserClient = <
@@ -16,7 +16,7 @@ export const createBrowserClient = <
   supabaseUrl: string,
   supabaseKey: string,
   options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
-  cookie_options?: SecureCookieOptions
+  cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName> => {
   if (cookie_options) setCookieOptions(cookie_options)
   return createClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {

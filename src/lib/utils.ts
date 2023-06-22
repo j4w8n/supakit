@@ -1,4 +1,4 @@
-import type { GenericCookieOptions, SecureCookieOptions } from './types/index.js'
+import type { GenericCookieOptions, SecureCookieOptionsPlusName } from './types/index.js'
 import { getCookieOptions } from './config/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
@@ -9,7 +9,7 @@ export const isAuthToken = (name: string) => {
   return name === getCookieOptions().name || regex.test(name)
 }
 
-export const merge = (current: GenericCookieOptions, updates: GenericCookieOptions): SecureCookieOptions => {
+export const merge = (current: GenericCookieOptions, updates: GenericCookieOptions): SecureCookieOptionsPlusName => {
   if (updates) {
     for (let key of Object.keys(updates)) {
       if (!current.hasOwnProperty(key) || typeof updates[key] !== 'object') current[key] = updates[key];

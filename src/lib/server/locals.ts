@@ -1,11 +1,11 @@
-import type { Handle } from "@sveltejs/kit"
+import type { RequestEvent } from "@sveltejs/kit"
 import { createClient, type Session } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 import { decodeBase64URL, isAuthToken } from '../utils.js'
 import { CookieStorage } from "./storage.js"
 import { getCookieOptions } from '../config/index.js'
 
-export const locals = (async ({ event, resolve }) => {
+export const locals = async (event: RequestEvent): Promise<void> => {
   const { cookies, locals } = event
   const temp_session = cookies.get('sb-temp-session') ? JSON.parse(cookies.get('sb-temp-session') || '') : null
   const auth_cookie_exists = cookies.getAll().find(cookie => isAuthToken(cookie.name))
@@ -29,7 +29,7 @@ export const locals = (async ({ event, resolve }) => {
     user: session.user
   } : null
 
-  locals.supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
+  locals.supabase = locals.supabase ?? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,
@@ -45,6 +45,4 @@ export const locals = (async ({ event, resolve }) => {
       refresh_token: session.refresh_token 
     })
   }
-
-  return await resolve(event)
-}) satisfies Handle
+}
