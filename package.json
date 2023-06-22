@@ -14,13 +14,11 @@
 		"vite-plugin"
 	],
 	"devDependencies": {
-		"@supabase/supabase-js": "^2.25.0",
+		"@supabase/supabase-js": "^2.26.0",
 		"@sveltejs/adapter-auto": "^2.1.0",
-		"@sveltejs/kit": "^1.18.0",
+		"@sveltejs/kit": "^1.20.4",
 		"@sveltejs/package": "^2.0.2",
-		"@sveltejs/vite-plugin-svelte": "^2.2.0",
 		"@types/cookie": "^0.5.1",
-		"@types/node": "^20.2.0",
 		"svelte": "^3.59.1",
 		"typescript": "^5.0.4",
 		"vite": "^4.3.8"
