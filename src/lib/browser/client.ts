@@ -7,7 +7,7 @@ import { isBrowser } from '../utils.js'
 let cached_browser_client: SupabaseClient<any, string, any> | undefined
 
 /* mostly from @supabase/supabase-js */
-export const createBrowserClient = <
+export const createSupabaseLoadClient = <
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'

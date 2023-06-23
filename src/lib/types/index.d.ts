@@ -38,7 +38,7 @@ export function getSupabaseLoadClientCookieOptions(): SecureCookieOptionsPlusNam
 export function setSupabaseLoadClientCookieOptions({}: SecureCookieOptionsPlusName): void
 export function getSupabaseServerClientOptions(): ServerClientOptions
 export function setSupabaseServerClientOptions({}: ServerClientOptions): void
-export function createBrowserClient<
+export function createSupabaseLoadClient<
   Database = any,
   SchemaName extends string & keyof Database = 'public' extends keyof Database
     ? 'public'
