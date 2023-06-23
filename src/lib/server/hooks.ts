@@ -1,15 +1,6 @@
-import type { MaybeResponse } from "types/index.js"
+import { sequence } from "@sveltejs/kit/hooks"
 import { endpoints } from "./endpoints.js"
 import { locals } from "./locals.js"
-import type { RequestEvent } from "@sveltejs/kit"
 
-export const supakit = async (event: RequestEvent): Promise<MaybeResponse> => {
-  const response = await endpoints(event)
-  if (response) return response
-  await locals(event)
-}
-
-export const supakitLite = async (event: RequestEvent): Promise<MaybeResponse> => {
-  const response = await endpoints(event)
-  if (response) return response
-}
+export const supakit = sequence(endpoints, locals)
+export const supakitLite = endpoints

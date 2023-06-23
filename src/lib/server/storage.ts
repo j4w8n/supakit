@@ -1,12 +1,13 @@
 import type { GoTrueClientOptions } from '@supabase/supabase-js'
 import type { RequestEvent } from '@sveltejs/kit'
 import { isAuthToken } from '../utils.js'
+import type { ServerClientOptions } from '../types/index.js'
 
 interface StorageAdapter extends Exclude<GoTrueClientOptions['storage'], undefined> {}
 
 export class CookieStorage implements StorageAdapter {
   constructor(
-    private readonly event: Pick<RequestEvent, 'cookies' | 'locals'>
+    private readonly event: Pick<RequestEvent, 'cookies'> & Pick<ServerClientOptions, 'cookie_options'>
   ) { }
 
   getItem(key: string) {
@@ -14,11 +15,11 @@ export class CookieStorage implements StorageAdapter {
     return cookie
   }
   setItem(key: string, value: string) {
-    this.event.cookies.set(key, value, this.event.locals.cookie_options)
+    this.event.cookies.set(key, value, this.event.cookie_options)
   }
   removeItem(key: string) {
     this.event.cookies.delete(key, {
-      ...this.event.locals.cookie_options,
+      ...this.event.cookie_options,
       maxAge: -1
     })
     if (isAuthToken(key)) {

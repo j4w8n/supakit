@@ -1,15 +1,14 @@
-import { getCookieOptions } from '../config/index.js'
-import { json, type RequestEvent } from "@sveltejs/kit"
+import { getSupabaseServerClientOptions } from '../config/index.js'
+import { json, type Handle } from "@sveltejs/kit"
 import { createClient } from "@supabase/supabase-js"
 import { csrf_check, isAuthToken } from '../utils.js'
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
-import type { MaybeResponse } from 'types/index.js'
 
-export const endpoints = async (event: RequestEvent): Promise<MaybeResponse> => {
+export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
-  const cookie_options = getCookieOptions()
+  const { cookie_options } = getSupabaseServerClientOptions()
 
   /* Handle request to Supakit's auth callback route */
   if (url.pathname === `${base}/supakit/callback` && request.method === 'GET') {
@@ -23,7 +22,7 @@ export const endpoints = async (event: RequestEvent): Promise<MaybeResponse> => 
         autoRefreshToken: false,
         detectSessionInUrl: false,
         ...(cookie_options?.name ? { storageKey: cookie_options.name } : {}),
-        storage: new CookieStorage({ cookies, locals: { cookie_options, session: null, supabase: null } }),
+        storage: new CookieStorage({ cookies, cookie_options }),
         flowType: 'pkce'
       }
     })
@@ -78,9 +77,11 @@ export const endpoints = async (event: RequestEvent): Promise<MaybeResponse> => 
 
       const token = data.token
       const cookie_name = data.name
+      //@ts-ignore
+      const { maxAge, expires, name, ...options } = cookie_options
 
       const response = new Response(null)
-      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, cookie_options))
+      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, options))
       return response
     }
 
@@ -143,4 +144,6 @@ export const endpoints = async (event: RequestEvent): Promise<MaybeResponse> => 
 
     return new Response(null, { status: 401 })
   }
-}
+
+  return await resolve(event)
+}) satisfies Handle

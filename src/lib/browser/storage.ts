@@ -61,14 +61,14 @@ export const CookieStorage: SupportedStorage = {
        * If this is the first visit or the page refreshes,
        * set a temp non-httpOnly cookie for use with initial endpoint calls.
        */
-      const cookie_options = getCookieOptions()
-      document.cookie = serialize(`sb-${csrf.name}-csrf`, csrf.token, {
-        ...cookie_options,
-        httpOnly: false,
-        maxAge: 5,
-        sameSite: 'strict',
-        secure: true
-      })
+      // const cookie_options = getCookieOptions()
+      // document.cookie = serialize(`sb-${csrf.name}-csrf`, csrf.token, {
+      //   ...cookie_options,
+      //   httpOnly: false,
+      //   maxAge: 5,
+      //   sameSite: 'strict',
+      //   secure: true
+      // })
 
       try {
         const res = await fetch(csrf_route, {
