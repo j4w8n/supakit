@@ -1,6 +1,5 @@
 import { merge } from '../utils.js'
 import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
-import type { CookieSerializeOptions } from 'cookie'
 
 const COOKIE_DEFAULTS = {
   path: '/',
@@ -13,7 +12,7 @@ const SERVER_CLIENT_DEFAULTS = {
     flowType: 'pkce'
   }
 }
-let cookie_options: CookieSerializeOptions & { name: string }
+let load_client_cookie_options: SecureCookieOptionsPlusName
 let server_client_options: ServerClientOptions
 
 const SERVER_DEFAULTS = {
@@ -21,14 +20,14 @@ const SERVER_DEFAULTS = {
   client_options: SERVER_CLIENT_DEFAULTS
 }
 
-export const getCookieOptions = (): SecureCookieOptionsPlusName => {
-  return cookie_options ?? COOKIE_DEFAULTS
+export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusName => {
+  return load_client_cookie_options ?? COOKIE_DEFAULTS
 }
 
-export const setCookieOptions = (value: SecureCookieOptionsPlusName) => {
+export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusName) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
 
-  cookie_options = merge(COOKIE_DEFAULTS, value)
+  load_client_cookie_options = merge(COOKIE_DEFAULTS, value)
 }
 
 export const getSupabaseServerClientOptions = (): ServerClientOptions => {

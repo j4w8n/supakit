@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
-import { setCookieOptions } from '../config/index.js'
+import { setSupabaseLoadClientCookieOptions } from '../config/index.js'
 import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptionsPlusName, GenericSchema } from '../types/index.js'
 import { isBrowser } from '../utils.js'
 
@@ -36,7 +36,7 @@ export const createBrowserClient = <
   })
 
   if (browser) {
-    if (cookie_options) setCookieOptions(cookie_options)
+    if (cookie_options) setSupabaseLoadClientCookieOptions(cookie_options)
     cached_browser_client = client
   }
 

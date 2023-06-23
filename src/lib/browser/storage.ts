@@ -1,5 +1,5 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
-import { getCookieOptions } from '../config/index.js'
+import { getSupabaseLoadClientCookieOptions } from '../config/index.js'
 import { isBrowser, isAuthToken } from '../utils.js'
 import { serialize } from 'cookie'
 import { base } from '$app/paths'
@@ -61,7 +61,7 @@ export const CookieStorage: SupportedStorage = {
        * If this is the first visit or the page refreshes,
        * set a temp non-httpOnly cookie for use with initial endpoint calls.
        */
-      // const cookie_options = getCookieOptions()
+      // const cookie_options = getSupabaseLoadClientCookieOptions()
       // document.cookie = serialize(`sb-${csrf.name}-csrf`, csrf.token, {
       //   ...cookie_options,
       //   httpOnly: false,
