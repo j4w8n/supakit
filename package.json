@@ -24,9 +24,9 @@
 		"vite": "^4.3.8"
 	},
 	"peerDependencies": {
-		"@supabase/supabase-js": "^2.20.0",
-		"@sveltejs/kit": "^1.10.0",
-		"svelte": "^3.55.1"
+		"@supabase/supabase-js": "^2.26.0",
+		"@sveltejs/kit": "^1.20.4",
+		"svelte": "^3.59.1"
 	},
 	"type": "module",
 	"exports": {
