@@ -1,12 +1,12 @@
 import type { GenericObjectOptions } from './types/index.js'
-import { getCookieOptions } from './config/index.js'
+import { getSupabaseLoadClientCookieOptions } from './config/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
 export const isBrowser = () => typeof document !== 'undefined'
 
 export const isAuthToken = (name: string) => {
   const regex = /^sb-.*-auth-token$/
-  return name === getCookieOptions().name || regex.test(name)
+  return name === getSupabaseLoadClientCookieOptions().name || regex.test(name)
 }
 
 export const merge = (current: GenericObjectOptions, updates: GenericObjectOptions): any => {
