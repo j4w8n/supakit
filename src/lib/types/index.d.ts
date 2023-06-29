@@ -47,8 +47,8 @@ export function createSupabaseLoadClient<
     ? Database[SchemaName]
     : any
 >(
-  supabaseUrl: string, 
-  supabaseKey: string, 
+  supabase_url: string, 
+  supabase_key: string, 
   options?: SupabaseClientOptionsWithLimitedAuth, 
   cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName, Schema>

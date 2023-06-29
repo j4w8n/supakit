@@ -16,8 +16,8 @@ export const createSupabaseLoadClient = <
     ? Database[SchemaName]
     : any
 >(
-  supabaseUrl: string,
-  supabaseKey: string,
+  supabase_url: string,
+  supabase_key: string,
   options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
   cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName, Schema> => {
@@ -26,7 +26,7 @@ export const createSupabaseLoadClient = <
     return cached_browser_client as SupabaseClient<Database, SchemaName, Schema>
   }
 
-  const client = createClient<Database, SchemaName, Schema>(supabaseUrl, supabaseKey, {
+  const client = createClient<Database, SchemaName, Schema>(supabase_url, supabase_key, {
     ...options,
     auth: {
       storage: CookieStorage,

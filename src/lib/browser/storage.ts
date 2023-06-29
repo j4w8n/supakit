@@ -8,11 +8,11 @@ let token = ''
 let name = ''
 let cached_session: {} | null = null
 
-const getCSRF = () => {
+const getCsrf = () => {
   return { token, name }
 }
 
-const setCSRF = () => {
+const setCsrf = () => {
   token = crypto.randomUUID()
   name = crypto.randomUUID()
   return { token, name }
@@ -25,7 +25,7 @@ export const CookieStorage: SupportedStorage = {
   async getItem(key) {
     if (!isBrowser()) return null
     if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
-    let csrf = getCSRF()
+    let csrf = getCsrf()
 
     const getCookie = async () => {
       try {
@@ -55,7 +55,7 @@ export const CookieStorage: SupportedStorage = {
     if (csrf.token !== '') {
       return await getCookie()
     } else {
-      csrf = setCSRF()
+      csrf = setCsrf()
 
       /**
        * If this is the first visit or the page refreshes,
@@ -90,7 +90,7 @@ export const CookieStorage: SupportedStorage = {
   async setItem(key, value) {
     if (!isBrowser()) return
     if (isAuthToken(key)) cached_session = JSON.parse(value)
-    const csrf = getCSRF()
+    const csrf = getCsrf()
     try {
       const res = await fetch(cookie_route, {
         method: 'POST',
@@ -109,7 +109,7 @@ export const CookieStorage: SupportedStorage = {
   async removeItem(key) {
     if (!isBrowser()) return
     if (isAuthToken(key)) cached_session = null
-    const csrf = getCSRF()
+    const csrf = getCsrf()
     try {
       const res = await fetch(cookie_route, {
         method: 'DELETE',
