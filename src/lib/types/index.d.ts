@@ -24,7 +24,6 @@ export type GenericSchema = {
   Functions: Record<string, GenericFunction>
 }
 
-export const CookieStorage: SupportedStorage
 export const supakit: handle
 export const supakitLite: Handle
 
