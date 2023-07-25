@@ -10,8 +10,9 @@
 		"lint": "eslint ."
 	},
 	"keywords": [
-		"rollup-plugin",
-		"vite-plugin"
+		"supabase",
+		"sveltekit",
+		"auth"
 	],
 	"devDependencies": {
 		"@supabase/supabase-js": "^2.26.0",
