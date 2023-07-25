@@ -65,7 +65,7 @@ This client will now be available in either `data` or `$page.data` in your downs
 
 Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
 
-Supakit does not support passing in `auth` options, except `flowType`.
+`flowType` is the only `auth` option supported by Supakit.
 
 ```ts
 /* src/routes/layout.ts */
@@ -76,11 +76,7 @@ import type { Database } from '$lib/database.d'
 export const load = async ({ data: { session } }) => {
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
-    env.PUBLIC_SUPABASE_ANON_KEY, {
-      auth: {
-        flowType: 'implicit'
-      }
-    }
+    env.PUBLIC_SUPABASE_ANON_KEY
   )
 
   return { supabase, session }
@@ -160,10 +156,10 @@ export const handle = supakit
 ```
 
 ### Server-side auth
-Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects.
+Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects, e.g.`/app`.
 
 ```ts
-/* some server-side file, like +page.server.ts; and perhaps in an action, as shown */
+/* some server-side file, like src/routes/login/+page.server.ts */
 export const actions = {
   signin: async ({ request, url, locals: { supabase } }) => {
     const data = await request.formData()
@@ -219,7 +215,6 @@ Setup
 <script lang="ts">
   import { onMount } from 'svelte'
   import { getSessionStore, supabaseAuthStateChange } from 'supakit'
-  import { supabase } from '$lib/client'
 
   export let data
   const session_store = getSessionStore()
@@ -245,7 +240,7 @@ Setup
 ```
 Page Usage
 ```svelte
-<!-- +page.svelte -->
+<!-- /src/routes/some/path/+page.svelte -->
 <script lang="ts">
   import { getSessionStore } from 'supakit'
   const session_store = getSessionStore()
@@ -256,10 +251,8 @@ Page Usage
 {/if}
 ```
 
-> You can't effectively use this store for other purposes, like writing your own data to it, as the store's value will be overwritten after certain events and during server requests.
-
 ### Auth State
-`supabaseAuthStatChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
+`supabaseAuthStateChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
 
 If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
 
@@ -279,7 +272,6 @@ Example:
   import { goto } from '$app/navigation'
   import { onMount } from 'svelte'
   import { getSessionStore, supabaseAuthStateChange } from 'supakit'
-  import { supabase } from '$lib/client'
 
   export let data
   const session_store = getSessionStore()
@@ -295,7 +287,10 @@ Example:
 
   onMount(() => {
     supabaseAuthStateChange(data.supabase, session_store, ({ event, session }) => {
-      /* put your post auth event code here */
+      /**
+       * Put any post-event code here.
+       * Not common, but possible.
+       */
     })
   })
 </script>
@@ -374,7 +369,7 @@ const cookie_options = getSupabaseLoadClientCookieOptions()
 ```
 
 ```ts
-/* some server-side file with locals available */
+/* some server-side file with locals available - example here is a hooks handler */
 export const yourHandler = (async ({ event, resolve }) => {
   if ('some check') {
     const response = new Response(null)
