@@ -1,5 +1,5 @@
 # Supakit
-A Supabase auth helper for SvelteKit. Relies on browser cookies.
+A Supabase auth helper for SvelteKit.
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
@@ -65,7 +65,7 @@ This client will now be available in either `data` or `$page.data` in your downs
 
 Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
 
-`flowType` is the only `auth` option supported by Supakit.
+`flowType` is the only `auth` option supported by Supakit - which is `pkce` by default.
 
 ```ts
 /* src/routes/layout.ts */
@@ -135,16 +135,13 @@ export const load = ({ locals: { session, supabase } }) => {
 }
 ```
 
-If you'd like to set client and/or cookie options for the server client, pass them into a function at the root of your server hooks.
+If you'd like to set client options for the server client, pass them into a function at the root of your server hooks.
 
 ```ts
 /* src/hooks.server.ts */
 import { supakit, setSupabaseServerClientOptions } from 'supakit'
 
 setSupabaseServerClientOptions({
-  cookie_options: {
-    maxAge: 180
-  },
   client_options: {
     auth: {
       flowType: 'implicit'
@@ -287,10 +284,7 @@ Example:
 
   onMount(() => {
     supabaseAuthStateChange(data.supabase, session_store, ({ event, session }) => {
-      /**
-       * Put any post-event code here.
-       * Not common, but possible.
-       */
+      /* Put any post-event code here. This is not common, but available if needed. */
     })
   })
 </script>
@@ -306,17 +300,17 @@ Supakit will set upto four cookies.
 
 `sb-<supabase_project_id>-auth-token`, or your custom storage key, is updated after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. The provider cookies will only be set after the initial `SIGNED_IN` event, and will need to be refreshed and updated by you. The csrf cookie is a session cookie, used to help secure the `/supakit/cookie` endpoint for cookie storage; and you may notice more than one.
 
-Setting httpOnly cookies is done by making route requests to the server, then returning a response with the `set-cookie` header. These requests are handled programmatically by Supakit. There is no need for you to create routes for this purpose.
+Supakit sets httpOnly cookies by making route requests to the server, then returning a response with the `set-cookie` header. These requests are handled programmatically by Supakit. There is no need for you to create routes for this purpose.
 
 Supakit maintains a session cache inside it's custom `CookieStorage` for the Supabase load client. When retrieving a user session, for a call like `supabase.auth.getSession()` for example, Supakit will return the cached response as long as the session is not `null`; saving a trip to the server.
 
-> Supakit uses the special, programmed routes `/supakit/cookie` and `/supakit/csrf` to handle cookies. Therefore, you should not have a top-level route with the same name (not that anyone would, but).
+> Supakit uses the special, programmed routes `/supakit/cookie` and `/supakit/csrf`. Therefore, you should not have a top-level route with the same name (not that anyone would).
 
 #### httpOnly Cookie Exception
-Because Supakit uses secure httpOnly cookie storage: setting, getting, and deleting the session requires a request to the server. This causes a delay between sending the request, receiving the response, and finally setting the cookie in the browser. This can cause a timing issue after a user logs in for the first time; specifically if you have callback code for `supabaseAuthStateChange()`. To work around this, Supakit will set a non-httpOnly cookie which expires in 5 seconds. This allows any callback, or other affected, code to send the temporary cookie `sb-temp-session` to the server, so that the server will know someone is logged in. This cookie exists in the browser, until it's closed; but once it has expired, it cannot be accessed via XSS attacks.
+Because Supakit uses secure httpOnly cookie storage: setting, getting, and deleting the session requires a request to the server. This causes a delay between sending the request, receiving the response, and finally setting the cookie in the browser. This can cause a timing issue after a user logs in for the first time; specifically if you have callback code for `supabaseAuthStateChange()`. To work around this, Supakit will set a non-httpOnly cookie which expires in 5 seconds. This allows any affected code to send the temporary cookie `sb-temp-session` to the server, so that the server will know someone is logged in. This cookie exists in the browser, until it's closed; but once it has expired, it cannot be accessed via XSS attacks.
 
 #### Cookie Options
-You can set your own options by passing in an object of `SecureCookieOptions` plus `name` for a custom cookie storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate.
+You can set your own options by passing in an object of `SecureCookieOptions` plus `name` for a custom cookie storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate. Cookie options should be the same for the Load client and Server client.
 
 This is the fourth parameter for `createSupabaseLoadClient`.
 
@@ -344,7 +338,7 @@ export const load = async ({ data: { session } }) => {
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
     env.PUBLIC_SUPABASE_ANON_KEY,
-    {}, /* Supabase client options as third parameter */
+    {}, /* Supabase client options is the third parameter */
     {
       maxAge: 60 * 60 * 24 * 365 * 100,
       sameSite: 'strict',
@@ -356,6 +350,20 @@ export const load = async ({ data: { session } }) => {
 }
 ```
 
+Server client example:
+```ts
+/* src/hooks.server.ts */
+import { supakit, setSupabaseServerClientOptions } from 'supakit'
+
+setSupabaseServerClientOptions({
+  cookie_options: {
+    maxAge: 180
+  }
+})
+
+export const handle = supakit
+```
+
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
 > Supakit relies on the `httpOnly` value to be `true` for better cookie security. Typescript will show an error if you try to pass it in.
 
@@ -363,6 +371,7 @@ If you need to set your own cookies, you can import `getSupabaseLoadClientCookie
 
 Examples:
 ```ts
+/* client-side */
 import { getSupabaseLoadClientCookieOptions } from 'supakit'
 
 const cookie_options = getSupabaseLoadClientCookieOptions()
