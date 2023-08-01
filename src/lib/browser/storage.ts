@@ -1,7 +1,5 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
-import { getSupabaseLoadClientCookieOptions } from '../config/index.js'
 import { isBrowser, isAuthToken } from '../utils.js'
-import { serialize } from 'cookie'
 import { base } from '$app/paths'
 
 let token = ''
@@ -56,19 +54,6 @@ export const CookieStorage: SupportedStorage = {
       return await getCookie()
     } else {
       csrf = setCsrf()
-
-      /**
-       * If this is the first visit or the page refreshes,
-       * set a temp non-httpOnly cookie for use with initial endpoint calls.
-       */
-      // const cookie_options = getSupabaseLoadClientCookieOptions()
-      // document.cookie = serialize(`sb-${csrf.name}-csrf`, csrf.token, {
-      //   ...cookie_options,
-      //   httpOnly: false,
-      //   maxAge: 5,
-      //   sameSite: 'strict',
-      //   secure: true
-      // })
 
       try {
         const res = await fetch(csrf_route, {
