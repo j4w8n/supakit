@@ -24,7 +24,7 @@ const csrf_route = `${base}/supakit/csrf`
 export const CookieStorage: SupportedStorage = {
   async getItem(key) {
     if (!isBrowser()) return null
-    if (isAuthToken(key) && cached_session) return JSON.stringify(cached_session)
+    if (isAuthToken(key) && cached_session) return cached_session
     let csrf = getCsrf()
 
     const getCookie = async () => {
