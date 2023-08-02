@@ -41,17 +41,29 @@ export const endpoints = (async ({ event, resolve }) => {
         throw error
       }
       const existing_cookies = cookies.getAll()
-      const code_verifier_regex = /^.*-code-verifier$/
+      const code_verifier_cookie_regex = /^.*-code-verifier$/
+      const csrf_cookie_regex = /^.*-csrf$/
       const provider_token: string | null = data.session?.provider_token ?? null
       const provider_refresh_token: string | null = data.session?.provider_refresh_token ?? null
 
       for (const cookie of existing_cookies) {
-        if (code_verifier_regex.test(cookie.name)) {
-          /* set auth code verifier cookie to expire */
+        if (code_verifier_cookie_regex.test(cookie.name)) {
+          /**
+            * set auth code verifier cookie to expire
+            * 
+            * exchangeCodeForSession() won't do this correctly because
+            * of the custom response and nature of the cookies function.
+            */
           response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, {
             ...cookie_options,
             maxAge: -1
           }))
+        } else if (csrf_cookie_regex.test(cookie.name)) {
+          /**
+            * do not save csrf cookies 
+            * 
+            * when the redirect happens, a new csrf cookie will be created
+            */
         } else {
           /* add all other cookies */
           response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
@@ -62,6 +74,7 @@ export const endpoints = (async ({ event, resolve }) => {
       if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), cookie_options))
       if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), cookie_options))
     }
+
     return response
   }
 
