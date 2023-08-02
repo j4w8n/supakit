@@ -86,6 +86,8 @@ export const load = async ({ data: { session } }) => {
 ### Declare onAuthStateChange
 Listen for auth changes in your root +layout.svelte file. You'll need to pass-in your Supabase load client as the first parameter.
 
+You'll also want to reference [auth state](#auth-state) to either use Supakit's session store or set a callback function that invalidates data after a session change.
+
 ```html
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
@@ -266,7 +268,7 @@ Example:
 ```html
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { goto } from '$app/navigation'
+  import { goto, invalidate } from '$app/navigation'
   import { onMount } from 'svelte'
   import { getSessionStore, supabaseAuthStateChange } from 'supakit'
 
@@ -284,7 +286,13 @@ Example:
 
   onMount(() => {
     supabaseAuthStateChange(data.supabase, session_store, ({ event, session }) => {
-      /* Put any post-event code here. This is not common, but available if needed. */
+      /**
+       * Put any post-event code here.
+       * 
+       * e.g. If you don't use Supakit's session store, then you'll likely want
+       * to add the below; as well as change `session_store`, above, to `null`.
+       */
+      if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
     })
   })
 </script>
