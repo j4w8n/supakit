@@ -10,7 +10,8 @@ export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 	'auth'
 > & {
   auth?: {
-    flowType: AuthFlowType
+    flowType?: AuthFlowType
+    debug?: boolean
   }
 }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void

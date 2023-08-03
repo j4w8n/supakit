@@ -21,9 +21,9 @@ export const endpoints = (async ({ event, resolve }) => {
       auth: {
         autoRefreshToken: false,
         detectSessionInUrl: false,
-        ...(cookie_options?.name ? { storageKey: cookie_options.name } : {}),
         storage: new CookieStorage({ cookies, cookie_options }),
-        flowType: 'pkce'
+        flowType: 'pkce',
+        ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
       }
     })
 
