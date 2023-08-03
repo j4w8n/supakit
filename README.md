@@ -9,6 +9,23 @@ A Supabase auth helper for SvelteKit.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 - Option to not use server-side features.
 
+## Table of Contents
+
+[Install](#install)
+[Setup](#setup)
+[Types](#types)
+[Load Client](#load-client-and-options)
+[onAuthStateChange](#auth-state)
+[Server Hooks](#server-hooks)
+[event.locals](#locals)
+[Server Client](#server-client-and-options)
+[Server-side Auth](#server-side-auth)
+[Client-side Auth](#client-side-auth)
+[Session Store](#session-store)
+[Cookies](#cookies)
+[Troubleshooting](#troubleshooting)
+[Protect Routes](#protecting-routes)
+
 ## Install
 
 `npm install supakit`
@@ -17,7 +34,7 @@ A Supabase auth helper for SvelteKit.
 
 `yarn add supakit`
 
-## Bare Minimum
+## Setup
 
 For the examples, we are assuming that you use Typescript and are generating database types to $lib/database.d.ts
 
@@ -65,7 +82,9 @@ This client will now be available in either `data` or `$page.data` in your downs
 
 Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
 
-`flowType` is the only `auth` option supported by Supakit - which is `pkce` by default.
+`flowType` and `debug` are the only `auth` options supported by Supakit.
+
+If you want to use SvelteKit's native invalidate method, after session changes, be sure to use `depends` below. Otherwise, you can omit and setup the [session store](#session-store).
 
 ```ts
 /* src/routes/layout.ts */
@@ -73,7 +92,9 @@ import { env } from '$env/dynamic/public'
 import { createSupabaseLoadClient } from 'supakit'
 import type { Database } from '$lib/database.d'
 
-export const load = async ({ data: { session } }) => {
+export const load = async ({ data: { session }, depends }) => {
+  depends('supabase:auth')
+
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
     env.PUBLIC_SUPABASE_ANON_KEY
@@ -86,7 +107,8 @@ export const load = async ({ data: { session } }) => {
 ### Declare onAuthStateChange
 Listen for auth changes in your root +layout.svelte file. You'll need to pass-in your Supabase load client as the first parameter.
 
-You'll also want to reference [auth state](#auth-state) to either use Supakit's session store or set a callback function that invalidates data after a session change.
+If using `depends` to invalidate data after session changes, be sure to setup the callback function. Otherwise, 
+reference [auth state](#auth-state) to use Supakit's session store.
 
 ```html
 <!-- src/routes/+layout.svelte -->
@@ -97,7 +119,9 @@ You'll also want to reference [auth state](#auth-state) to either use Supakit's 
   export let data
 
   onMount(() => {
-    supabaseAuthStateChange(data.supabase)
+    supabaseAuthStateChange(data.supabase, null, ({ event, session }) => {
+      if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
+    }))
   })
 </script>
 ```
@@ -122,7 +146,35 @@ import { supakitLite } from 'supakit'
 export const handle = supakitLite
 ```
 
-### Server-side client and options
+### Locals
+There's nothing for you to do here, just a heads-up that these are available to use:
+
+```js
+/* Session info from Supabase */
+event.locals.session = {
+  provider_token,
+  provider_refresh_token,
+  access_token,
+  refresh_token,
+  expires_in,
+  expires_at,
+  token_type,
+  user
+}
+
+/* Supakit's server-side Supabase client */
+event.locals.supabase
+
+/**
+ * If you want to set your own cookies on the server-side,
+ * you can use Supakit's default options - or your custom
+ * options, if you've set them (see further below).
+ */
+event.locals.cookie_options
+```
+> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
+
+### Server client and options
 The built-in Supabase server client relies on `$env/dynamic/public`. If there is a logged-in user, they're automatically "signed in" to this client.
 
 ```ts
@@ -137,7 +189,16 @@ export const load = ({ locals: { session, supabase } }) => {
 }
 ```
 
-If you'd like to set client options for the server client, pass them into a function at the root of your server hooks.
+If you'd like to set client options for the server client, pass them into a function at the root of your server hooks. You can reference them at [SupabaseClientOptions](https://github.com/supabase/supabase-js/blob/master/src/lib/types.ts).
+
+Since Supakit only allows certain auth options, we've included them below. Type defaults are shown as the last option.
+
+Auth Types:
+```ts
+flowType?: 'implicit' | 'pkce'
+debug?: true | false
+```
+There's no compelling reason to set `flowType` to `implicit` for a server client, because any implicit flows would happen in the browser.
 
 ```ts
 /* src/hooks.server.ts */
@@ -146,7 +207,7 @@ import { supakit, setSupabaseServerClientOptions } from 'supakit'
 setSupabaseServerClientOptions({
   client_options: {
     auth: {
-      flowType: 'implicit'
+      debug: true
     }
   }
 })
@@ -155,8 +216,9 @@ export const handle = supakit
 ```
 
 ### Server-side auth
-Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the url with a `next` parameter for post-auth redirects, e.g.`/app`.
+Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the redirectTo url with a `next` parameter for post-auth redirects, e.g.`/app`.
 
+Here we show an example using page actions.
 ```ts
 /* some server-side file, like src/routes/login/+page.server.ts */
 export const actions = {
@@ -176,30 +238,37 @@ export const actions = {
   }
 }
 ```
-
-### Locals
-Supakit sets the following `event.locals`:
-
-```js
-/* Session info from Supabase */
-event.locals.session = {
-  provider_token,
-  provider_refresh_token,
-  access_token,
-  refresh_token,
-  expires_in,
-  expires_at,
-  token_type,
-  user
-}
-
-/* Supakit's server-side Supabase client */
-event.locals.supabase
-
-/* If you want to set your own cookies on the server-side, and use Supakit's or your custom options */
-event.locals.cookie_options
+```html
+<!-- some client-side file, like src/routes/login/+page.svelte -->
+<form method="POST" action="?/signin">
+  <button name="provider" value="github">GitHub</button>
+  <button name="provider" value="google">Google</button>
+</form>
 ```
-> `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
+
+### Client-side auth
+If you'd rather sign-in on the client-side, set your client's `flowType` to `implicit` and use typical Supabase sign-in methods.
+
+Load client example:
+```ts
+/* src/routes/layout.ts */
+import { env } from '$env/dynamic/public'
+import { createSupabaseLoadClient } from 'supakit'
+import type { Database } from '$lib/database.d'
+
+export const load = async ({ data: { session } }) => {
+  const supabase = createSupabaseLoadClient<Database>(
+    env.PUBLIC_SUPABASE_URL, 
+    env.PUBLIC_SUPABASE_ANON_KEY, {
+      auth: {
+        flowType: 'implicit'
+      }
+    }
+  )
+
+  return { supabase, session }
+}
+```
 
 ## Further Reading and Options
 
@@ -253,7 +322,7 @@ Page Usage
 ### Auth State
 `supabaseAuthStateChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
 
-If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events.
+If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This option is usually used in lieu of SvelteKit's `invalidate()` and `depends()` functions. Using both methods would be uncommon.
 
 Type: 
 ```ts
@@ -396,6 +465,24 @@ export const yourHandler = (async ({ event, resolve }) => {
 
   return await resolve(event)
 }) satisfies Handle
+```
+
+### Troubleshooting
+You can pass the `debug` option to your clients and see verbose logs for auth.
+```js
+export const load = async ({ data: { session } }) => {
+  const supabase = createSupabaseLoadClient<Database>(
+    env.PUBLIC_SUPABASE_URL, 
+    env.PUBLIC_SUPABASE_ANON_KEY,
+    {
+      auth: {
+        debug: true
+      }
+    }
+  )
+
+  return { supabase, session }
+}
 ```
 
 ## Protecting Routes
