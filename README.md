@@ -12,18 +12,31 @@ A Supabase auth helper for SvelteKit.
 ## Table of Contents
 
 [Install](#install)
+
 [Setup](#setup)
+
 [Types](#types)
+
 [Load Client](#load-client-and-options)
+
 [onAuthStateChange](#auth-state)
+
 [Server Hooks](#server-hooks)
+
 [event.locals](#locals)
+
 [Server Client](#server-client-and-options)
+
 [Server-side Auth](#server-side-auth)
+
 [Client-side Auth](#client-side-auth)
+
 [Session Store](#session-store)
+
 [Cookies](#cookies)
+
 [Troubleshooting](#troubleshooting)
+
 [Protect Routes](#protecting-routes)
 
 ## Install
