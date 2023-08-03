@@ -1,5 +1,5 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
-import { isBrowser, isAuthToken } from '../utils.js'
+import { browserEnv, isAuthToken } from '../utils.js'
 import { base } from '$app/paths'
 
 let token = ''
@@ -21,7 +21,7 @@ const csrf_route = `${base}/supakit/csrf`
 
 export const CookieStorage: SupportedStorage = {
   async getItem(key) {
-    if (!isBrowser()) return null
+    if (!browserEnv()) return null
     if (isAuthToken(key) && cached_session) return cached_session
     let csrf = getCsrf()
 
@@ -73,7 +73,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   async setItem(key, value) {
-    if (!isBrowser()) return
+    if (!browserEnv()) return
     if (isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCsrf()
     try {
@@ -92,7 +92,7 @@ export const CookieStorage: SupportedStorage = {
     }
   },
   async removeItem(key) {
-    if (!isBrowser()) return
+    if (!browserEnv()) return
     if (isAuthToken(key)) cached_session = null
     const csrf = getCsrf()
     try {

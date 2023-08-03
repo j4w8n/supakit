@@ -33,9 +33,10 @@ export const locals = (async ({ event, resolve }) => {
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,
-      ...(cookie_options?.name ? { storageKey: cookie_options.name } : {}),
+      persistSession: true,
       storage: new CookieStorage({ cookies, cookie_options }),
       flowType: client_options?.auth?.flowType ?? 'pkce',
+      ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
     }
   })
 
