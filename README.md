@@ -5,6 +5,7 @@ A Supabase auth helper for SvelteKit.
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
 - Option to set `flowType` and `debug` for client auth.
 - Provides a callback route for server-side auth, so you don't have to setup `exchangeCodeForSession()`.
+- Provides a confirm route for server-side token hash otp verification.
 - Built-in server client, again less setup for you.
 - Saves the `provider_token` and `provider_refresh_token` in their own `httpOnly` cookies. These values are also available in `event.locals.session`. Please note that Supakit will not refresh these tokens for you.
 - Offers a secure client-side "session" store, which is hydrated with Supabase session info after most auth events. This helps with immediate reactivity after these events occur. The `invalidate()` method is an alternative to this.
@@ -230,6 +231,8 @@ export const handle = supakit
 ```
 
 ### Server-side auth
+
+#### Exchange a code for a session
 Supakit provides an endpoint for handling the `exchangeCodeForSession` method; so there's no need to create this route yourself. You can also append the redirectTo url with a `next` parameter for post-auth redirects, e.g.`/app`.
 
 Here we show an example using page actions.
@@ -258,6 +261,28 @@ export const actions = {
   <button name="provider" value="github">GitHub</button>
   <button name="provider" value="google">Google</button>
 </form>
+```
+
+#### Login with a token_hash
+This method can be used for the following purposes:
+1. Confirm a signup
+2. Invite a user
+3. Magic Link email signin
+4. Reset a password
+
+Be sure to change your email templates per the [Supabase guide](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr#update-email-templates-with-url-for-api-endpoint). When doing so, change any references of `/auth/confirm` to `/supakit/confirm`. Also, change any `next` parameter to the appropriate page on your site.
+
+Magic Link email Example
+```js
+const { data, error } = await supabase.auth.signInWithOtp({
+  email: 'user@example.com'
+})
+```
+Reset a password Example
+```js
+const { data, error } = await supabase.auth.resetPasswordForEmail({
+  email: 'user@example.com'
+})
 ```
 
 ### Client-side auth
