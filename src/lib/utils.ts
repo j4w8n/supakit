@@ -4,9 +4,9 @@ import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
 export const browserEnv = () => typeof document !== 'undefined'
 
-export const isAuthToken = (name: string) => {
+export const isAuthToken = (cookie_name: string) => {
   const regex = /^sb-.*-auth-token$/
-  return name === getSupabaseLoadClientCookieOptions().name || regex.test(name)
+  return cookie_name === getSupabaseLoadClientCookieOptions().name || regex.test(cookie_name)
 }
 
 export const merge = (current: GenericObjectOptions, updates: GenericObjectOptions): any => {
