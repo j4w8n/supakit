@@ -29,13 +29,13 @@ export const locals = (async ({ event, resolve }) => {
   } : null
 
   locals.supabase = locals.supabase ?? createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
-    ...client_options,
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,
       persistSession: true,
       storage: new CookieStorage({ cookies, cookie_options }),
       flowType: client_options?.auth?.flowType ?? 'pkce',
+      debug: client_options?.auth?.debug ?? false,
       ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
     }
   })
