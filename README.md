@@ -97,7 +97,13 @@ This client will now be available in either `data` or `$page.data` in your downs
 
 Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
 
-`flowType` and `debug` are the only `auth` options supported by Supakit.
+Since Supakit only allows certain auth options, we've included them below. Type defaults are shown as the last option.
+
+Auth Types:
+```ts
+flowType?: 'implicit' | 'pkce'
+debug?: true | false
+```
 
 If you want to use SvelteKit's native invalidate method, after session changes, be sure to use `depends` below. Otherwise, you can omit and setup the [session store](#session-store).
 
