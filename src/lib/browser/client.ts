@@ -34,6 +34,7 @@ export const createSupabaseLoadClient = <
       persistSession: true,
       storage: CookieStorage,
       flowType: options?.auth?.flowType ?? 'pkce',
+      debug: options?.auth?.debug ?? false,
       ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
     }
   })
