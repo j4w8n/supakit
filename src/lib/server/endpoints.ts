@@ -1,7 +1,7 @@
 import { getSupabaseServerClientOptions } from '../config/index.js'
 import { json, type Handle } from "@sveltejs/kit"
 import { createClient, type EmailOtpType } from "@supabase/supabase-js"
-import { csrf_check, isAuthToken } from '../utils.js'
+import { csrf_check, isAuthToken, isProviderToken } from '../utils.js'
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
@@ -43,11 +43,18 @@ export const endpoints = (async ({ event, resolve }) => {
       const existing_cookies = cookies.getAll()
       const code_verifier_cookie_regex = /^.*-code-verifier$/
       const csrf_cookie_regex = /^.*-csrf$/
+      const rememberme_cookie_regex = /^supakit-rememberme$/
       const provider_token: string | null = data.session?.provider_token ?? null
       const provider_refresh_token: string | null = data.session?.provider_refresh_token ?? null
-      const expire_options = {
+      const expire_cookie_options = {
         ...cookie_options,
         maxAge: -1
+      }
+      //@ts-ignore
+      const { name, httpOnly, ...rest_cookie_options } = cookie_options
+      const remember_me_cookie_options = {
+        ...rest_cookie_options,
+        httpOnly: false
       }
 
       for (const cookie of existing_cookies) {
@@ -57,7 +64,9 @@ export const endpoints = (async ({ event, resolve }) => {
             * exchangeCodeForSession() won't expire code-verifier cookies correctly because
             * of the custom response and nature of the cookies function.
             */
-          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, expire_options))
+          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, expire_cookie_options))
+        } else if (rememberme_cookie_regex.test(cookie.name)) {
+          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, remember_me_cookie_options))
         } else {
           /* add all other cookies */
           response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
@@ -65,10 +74,29 @@ export const endpoints = (async ({ event, resolve }) => {
       }
 
       /* set provider cookies, if exist */
-      if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), cookie_options))
-      if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), cookie_options))
-    }
+      let remember_me
+      const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
 
+      switch (remember_me_cookie) {
+        case 'true':
+          remember_me = true
+          break;
+        case 'false':
+          remember_me = false
+          break;
+      }
+      if (!remember_me) {
+        //@ts-ignore
+        const { maxAge, expires, name, ...session_cookie_options } = cookie_options
+
+        if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), session_cookie_options))
+        if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), session_cookie_options))
+      } else {
+        if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), cookie_options))
+        if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), cookie_options))
+      }
+    }
+    
     return response
   }
 
@@ -109,15 +137,23 @@ export const endpoints = (async ({ event, resolve }) => {
     const existing_cookies = cookies.getAll()
     const code_verifier_cookie_regex = /^.*-code-verifier$/
     const csrf_cookie_regex = /^.*-csrf$/
-    const expire_options = {
+    const remember_me_cookie_regex = /^supakit-rememberme$/
+    const expire_cookie_options = {
       ...cookie_options,
       maxAge: -1
     }
-
+    //@ts-ignore
+    const { name, httpOnly, ...rest_cookie_options } = cookie_options
+    const remember_me_cookie_options = {
+      ...rest_cookie_options,
+      httpOnly: false
+    }
     for (const cookie of existing_cookies) {
       if (code_verifier_cookie_regex.test(cookie.name) || csrf_cookie_regex.test(cookie.name)) {
         /* expire any existing csrf or code-verifier cookies */
-        response.headers.append('set-cookie', cookies.serialize(cookie.name, '', expire_options))
+        response.headers.append('set-cookie', cookies.serialize(cookie.name, '', expire_cookie_options))
+      } else if (remember_me_cookie_regex.test(cookie.name)) {
+        response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, remember_me_cookie_options))
       } else {
         /* add all other cookies */
         response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
@@ -140,10 +176,10 @@ export const endpoints = (async ({ event, resolve }) => {
       const token = data.token
       const cookie_name = data.name
       //@ts-ignore
-      const { maxAge, expires, name, ...options } = cookie_options
+      const { maxAge, expires, name, ...session_cookie_options } = cookie_options
 
       const response = new Response(null)
-      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, options))
+      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, session_cookie_options))
       return response
     }
 
@@ -174,13 +210,43 @@ export const endpoints = (async ({ event, resolve }) => {
     if (request.method === 'POST') {
       const body = request.body ? await request.json() : null
       if (body) {
+        let remember_me
         const response = new Response(null)
         const data = JSON.parse(body.value) ?? body.value
+        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
 
-        response.headers.append('set-cookie', cookies.serialize(body.key, body.value, cookie_options))
-        if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), cookie_options))
-        if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), cookie_options))
-        
+        switch (remember_me_cookie) {
+          case 'true':
+            remember_me = true
+            break;
+          case 'false':
+            remember_me = false
+            break;
+        }
+
+        const remember_me_cookie_regex = /^supakit-rememberme$/
+        //@ts-ignore
+        const { maxAge, expires, name, ...session_cookie_options } = cookie_options
+        //@ts-ignore
+        const { httpOnly, ...rest_cookie_options } = session_cookie_options
+        const remember_me_cookie_options = {
+          ...rest_cookie_options,
+          httpOnly: false,
+          maxAge
+        }
+
+        if (!remember_me && (isAuthToken(body.key) || isProviderToken(body.key))) {  
+          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, session_cookie_options))
+          if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), session_cookie_options))
+          if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), session_cookie_options))
+        } else if (remember_me_cookie_regex.test(body.key)) {
+          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, remember_me_cookie_options))
+        } else {
+          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, cookie_options))
+          if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), cookie_options))
+          if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), cookie_options))
+        }
+
         return response
       } else {
         return new Response('Invalid body.', { status: 400 })

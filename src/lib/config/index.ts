@@ -1,5 +1,6 @@
 import { merge } from '../utils.js'
 import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
+import { serialize } from 'cookie'
 
 const COOKIE_DEFAULTS = {
   path: '/',
@@ -18,6 +19,47 @@ let server_client_options: ServerClientOptions
 const SERVER_DEFAULTS = {
   cookie_options: COOKIE_DEFAULTS,
   client_options: SERVER_CLIENT_DEFAULTS
+}
+
+export const rememberMe = () => {
+  const _get = (): boolean => {
+    const remember_me_cookie = document.cookie
+      .split('; ')
+      .find((cookie) => cookie.match('supakit-rememberme'))
+      ?.split('=')[1]
+
+    switch (remember_me_cookie) {
+      case 'true':
+        return true
+      case 'false':
+        return false
+      case undefined:
+        return _set(true)
+      default:
+        return true
+    }
+  }
+  const _set = (value: boolean) => {
+    document.cookie = serialize('supakit-rememberme', JSON.stringify(value), {
+      ...(server_client_options ?? COOKIE_DEFAULTS),
+      httpOnly: false,
+      maxAge: 60 * 60 * 24 * 365 * 100,
+      sameSite: 'lax',
+      secure: false
+    })
+    return value
+  }
+  const _toggle = (): boolean => {
+    const current = _get()
+    return _set(!current)
+  }
+
+  return {
+    get value() { return _get() },
+    set value(v: boolean) { _set(v) },
+    get toggle() { return _toggle() }
+  }
+
 }
 
 export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusName => {
