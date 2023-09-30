@@ -28,6 +28,13 @@ export type GenericSchema = {
 export const supakit: handle
 export const supakitLite: Handle
 
+export function rememberMe() {
+  return {
+    get value(): boolean;,
+    set value(v: boolean): void;,
+    get toggle(): boolean;
+  }
+}
 export function supabaseAuthStateChange(
   client: SupabaseClient,
   store?: Writable<Session | null> | null, 

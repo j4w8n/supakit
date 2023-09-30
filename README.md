@@ -3,6 +3,7 @@ A Supabase auth helper for SvelteKit.
 
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
+- "Remember Me" feature.
 - Option to set `flowType` and `debug` for client auth.
 - Provides a callback route for server-side auth, so you don't have to setup `exchangeCodeForSession()`.
 - Provides a confirm route for server-side token hash otp verification.
@@ -36,6 +37,8 @@ A Supabase auth helper for SvelteKit.
 [Session Store](#session-store)
 
 [Cookies](#cookies)
+
+[Remember Me](#remember-me)
 
 [Troubleshooting](#troubleshooting)
 
@@ -510,6 +513,33 @@ export const yourHandler = (async ({ event, resolve }) => {
 
   return await resolve(event)
 }) satisfies Handle
+```
+
+### Remember Me
+Determines if Supakit remembers a logged-in user or if they are logged out after closing the browser. Defaults to true, whether you use the feature or not.
+
+You can give users the option by adding a checkbox input to your login form, then importing and using the function.
+
+```html
+/* src/routes/login/+page.svelte */
+<script lang="ts">
+  import { rememberMe } from 'supakit'
+  import { onMount } from 'svelte'
+
+  let checked: boolean
+  onMount(() => {
+    checked = rememberMe().value
+  })
+</script>
+
+<form method="POST" action="?/signin">
+  <button name="provider" value="github">Login with GitHub</button>
+  <input 
+    type="checkbox" id="rememberme" 
+    bind:checked 
+    on:click={ () => checked = rememberMe().toggle }/>
+  <label for="rememberme">Remember Me</label>
+</form>
 ```
 
 ### Troubleshooting

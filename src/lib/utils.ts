@@ -9,6 +9,11 @@ export const isAuthToken = (cookie_name: string) => {
   return cookie_name === getSupabaseLoadClientCookieOptions().name || regex.test(cookie_name)
 }
 
+export const isProviderToken = (cookie_name: string) => {
+  const regex = /^sb-provider.*token$/
+  return regex.test(cookie_name)
+}
+
 export const merge = (current: GenericObjectOptions, updates: GenericObjectOptions): any => {
   if (updates) {
     for (let key of Object.keys(updates)) {
