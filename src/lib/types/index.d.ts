@@ -3,7 +3,11 @@ import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
 
-export type GenericObjectOptions = {[key: string]: any}
+export type CookieOptions = { cookie_options: SecureCookieOptionsPlusName }
+export type CookieOptionTypes = 'session' | 'expire' | 'remember_me' | 'all'
+export type KeyStringObjectAny = {[key: string]: any}
+export type SupakitRegExp = 'auth_token' | 'code_verifier' | 'csrf' | 'provider_token' | 'remember_me'
+export type KeyStringObjectRegExp = { [key: string]: RegExp }
 export type SecureCookieOptionsPlusName = CookieSerializeOptions & { name?: string }
 export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 	SupabaseClientOptions<SchemaName>,
@@ -16,8 +20,8 @@ export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export type ServerClientOptions = { 
-  cookie_options?: SecureCookieOptionsPlusName
-  client_options?: SupabaseClientOptionsWithLimitedAuth
+  cookie_options: SecureCookieOptionsPlusName
+  client_options: SupabaseClientOptionsWithLimitedAuth
 }
 export type GenericSchema = {
   Tables: Record<string, GenericTable>
