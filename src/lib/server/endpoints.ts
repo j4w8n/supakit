@@ -1,14 +1,63 @@
 import { getSupabaseServerClientOptions } from '../config/index.js'
-import { json, type Handle } from "@sveltejs/kit"
-import { createClient, type EmailOtpType } from "@supabase/supabase-js"
-import { csrf_check, isAuthToken, isProviderToken } from '../utils.js'
+import { json, type Handle, type Cookies } from "@sveltejs/kit"
+import { createClient, type EmailOtpType, type Session } from "@supabase/supabase-js"
+import { csrfCheck, getCookieOptions, isAuthToken, stringToBoolean, testRegEx } from '../utils.js'
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
+import type { SecureCookieOptionsPlusName } from 'types/index.js'
 
 export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
   const { cookie_options } = getSupabaseServerClientOptions()
+  const { expire_cookie_options, session_cookie_options, remember_me_cookie_options } = getCookieOptions('all', cookie_options)
+  const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      storage: new CookieStorage({ cookies, cookie_options }),
+      flowType: 'pkce',
+      ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
+    }
+  })
+
+  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SecureCookieOptionsPlusName = cookie_options) => {
+    response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, options))
+  }
+
+  const setReturnCookies = (response: Response, cookies: Cookies, session?: Session | null) => {
+    const existing_cookies = cookies.getAll()
+    for (const cookie of existing_cookies) {
+      if (testRegEx(cookie.name, 'code_verifier') || testRegEx(cookie.name, 'csrf')) {
+        /* expire any existing csrf or code-verifier cookies */
+        /**
+          * exchangeCodeForSession() won't expire code-verifier cookies correctly because
+          * of the custom response and nature of the cookies function.
+          */
+        setCookie(response, { name: cookie.name, value: '' }, expire_cookie_options)
+      } else if (testRegEx(cookie.name, 'remember_me')) {
+        /* add remember me cookie */
+        setCookie(response, cookie, remember_me_cookie_options)
+      } else {
+        /* add all other cookies */
+        setCookie(response, cookie)
+      }
+    }
+
+    if (session) {
+      /* set provider cookies, if exist */
+      const provider_token: string | null = session?.provider_token ?? null
+      const provider_refresh_token: string | null = session?.provider_refresh_token ?? null
+
+      if (provider_token !== null || provider_refresh_token !== null) {
+        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
+        const remember_me = stringToBoolean(remember_me_cookie)
+      
+        if (provider_token) setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(provider_token) }, remember_me ? cookie_options : session_cookie_options)
+        if (provider_refresh_token) setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(provider_refresh_token) }, remember_me ? cookie_options : session_cookie_options)
+      }
+    }
+  }
 
   /* Handle request to Supakit's auth code callback route */
   if (url.pathname === `${base}/supakit/callback` && request.method === 'GET') {
@@ -17,16 +66,6 @@ export const endpoints = (async ({ event, resolve }) => {
     /* define post-auth redirect */
     const next = url.searchParams.get('next') ?? '/'
 
-    const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
-      auth: {
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        storage: new CookieStorage({ cookies, cookie_options }),
-        flowType: 'pkce',
-        ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
-      }
-    })
-
     /* setup redirect, with cookies */
     const response = new Response(null, {
       status: 303,
@@ -34,67 +73,15 @@ export const endpoints = (async ({ event, resolve }) => {
         Location: `${url.origin}${base}${next}`
       }
     })
+
     if (code) {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      const { data: { session }, error } = await supabase.auth.exchangeCodeForSession(code)
       if (error) {
         console.error(error)
         throw error
       }
-      const existing_cookies = cookies.getAll()
-      const code_verifier_cookie_regex = /^.*-code-verifier$/
-      const csrf_cookie_regex = /^.*-csrf$/
-      const rememberme_cookie_regex = /^supakit-rememberme$/
-      const provider_token: string | null = data.session?.provider_token ?? null
-      const provider_refresh_token: string | null = data.session?.provider_refresh_token ?? null
-      const expire_cookie_options = {
-        ...cookie_options,
-        maxAge: -1
-      }
-      //@ts-ignore
-      const { name, httpOnly, ...rest_cookie_options } = cookie_options
-      const remember_me_cookie_options = {
-        ...rest_cookie_options,
-        httpOnly: false
-      }
 
-      for (const cookie of existing_cookies) {
-        if (code_verifier_cookie_regex.test(cookie.name) || csrf_cookie_regex.test(cookie.name)) {
-          /* expire any existing csrf or code-verifier cookies */
-          /**
-            * exchangeCodeForSession() won't expire code-verifier cookies correctly because
-            * of the custom response and nature of the cookies function.
-            */
-          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, expire_cookie_options))
-        } else if (rememberme_cookie_regex.test(cookie.name)) {
-          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, remember_me_cookie_options))
-        } else {
-          /* add all other cookies */
-          response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
-        }
-      }
-
-      /* set provider cookies, if exist */
-      let remember_me
-      const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
-
-      switch (remember_me_cookie) {
-        case 'true':
-          remember_me = true
-          break;
-        case 'false':
-          remember_me = false
-          break;
-      }
-      if (!remember_me) {
-        //@ts-ignore
-        const { maxAge, expires, name, ...session_cookie_options } = cookie_options
-
-        if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), session_cookie_options))
-        if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), session_cookie_options))
-      } else {
-        if (provider_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(provider_token), cookie_options))
-        if (provider_refresh_token) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(provider_refresh_token), cookie_options))
-      }
+      setReturnCookies(response, cookies, session)
     }
     
     return response
@@ -107,16 +94,6 @@ export const endpoints = (async ({ event, resolve }) => {
 
     /* define post-auth redirect */
     const next = url.searchParams.get('next') ?? '/'
-
-    const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
-      auth: {
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        storage: new CookieStorage({ cookies, cookie_options }),
-        flowType: 'pkce',
-        ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
-      }
-    })
 
     if (token_hash && type) {
       const { error } = await supabase.auth.verifyOtp({ token_hash, type })
@@ -134,38 +111,14 @@ export const endpoints = (async ({ event, resolve }) => {
       }
     })
 
-    const existing_cookies = cookies.getAll()
-    const code_verifier_cookie_regex = /^.*-code-verifier$/
-    const csrf_cookie_regex = /^.*-csrf$/
-    const remember_me_cookie_regex = /^supakit-rememberme$/
-    const expire_cookie_options = {
-      ...cookie_options,
-      maxAge: -1
-    }
-    //@ts-ignore
-    const { name, httpOnly, ...rest_cookie_options } = cookie_options
-    const remember_me_cookie_options = {
-      ...rest_cookie_options,
-      httpOnly: false
-    }
-    for (const cookie of existing_cookies) {
-      if (code_verifier_cookie_regex.test(cookie.name) || csrf_cookie_regex.test(cookie.name)) {
-        /* expire any existing csrf or code-verifier cookies */
-        response.headers.append('set-cookie', cookies.serialize(cookie.name, '', expire_cookie_options))
-      } else if (remember_me_cookie_regex.test(cookie.name)) {
-        response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, remember_me_cookie_options))
-      } else {
-        /* add all other cookies */
-        response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, cookie_options))
-      }
-    }
+    setReturnCookies(response, cookies)
 
     return response
   }
 
   /* Handle request to Supakit's CSRF route */
   if (url.pathname === `${base}/supakit/csrf`) {
-    const forbidden = csrf_check(event)
+    const forbidden = csrfCheck(event)
     if (forbidden) return forbidden
 
     if (request.method === 'POST') {
@@ -175,11 +128,9 @@ export const endpoints = (async ({ event, resolve }) => {
 
       const token = data.token
       const cookie_name = data.name
-      //@ts-ignore
-      const { maxAge, expires, name, ...session_cookie_options } = cookie_options
 
       const response = new Response(null)
-      response.headers.append('set-cookie', cookies.serialize(`sb-${cookie_name}-csrf`, token, session_cookie_options))
+      setCookie(response, { name: `sb-${cookie_name}-csrf`, value: token }, session_cookie_options)
       return response
     }
 
@@ -188,7 +139,7 @@ export const endpoints = (async ({ event, resolve }) => {
   
   /* Handle request to Supakit's cookie route */
   if (url.pathname === `${base}/supakit/cookie`) {
-    const forbidden = csrf_check(event)
+    const forbidden = csrfCheck(event)
     if (forbidden) return forbidden
 
     const cookie_name = request.headers.get('x-csrf-name') ?? false
@@ -208,43 +159,23 @@ export const endpoints = (async ({ event, resolve }) => {
     }
 
     if (request.method === 'POST') {
-      const body = request.body ? await request.json() : null
-      if (body) {
-        let remember_me
+      const cookie: { name: string, value: string } = request.body ? await request.json() : null
+      if (cookie) {
         const response = new Response(null)
-        const data = JSON.parse(body.value) ?? body.value
+        const data = JSON.parse(cookie.value) ?? cookie.value
         const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
+        const remember_me = stringToBoolean(remember_me_cookie)
 
-        switch (remember_me_cookie) {
-          case 'true':
-            remember_me = true
-            break;
-          case 'false':
-            remember_me = false
-            break;
-        }
-
-        const remember_me_cookie_regex = /^supakit-rememberme$/
-        //@ts-ignore
-        const { maxAge, expires, name, ...session_cookie_options } = cookie_options
-        //@ts-ignore
-        const { httpOnly, ...rest_cookie_options } = session_cookie_options
-        const remember_me_cookie_options = {
-          ...rest_cookie_options,
-          httpOnly: false,
-          maxAge
-        }
-
-        if (!remember_me && (isAuthToken(body.key) || isProviderToken(body.key))) {  
-          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, session_cookie_options))
-          if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), session_cookie_options))
-          if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), session_cookie_options))
-        } else if (remember_me_cookie_regex.test(body.key)) {
-          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, remember_me_cookie_options))
+        if (isAuthToken(cookie.name)) {
+          setCookie(response, cookie, remember_me ? cookie_options : session_cookie_options)
+          if (data.provider_token && data.provider_token !== '') setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(data.provider_token) }, remember_me ? cookie_options: session_cookie_options)
+          if (data.provider_refresh_token && data.provider_refresh_token !== '') setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(data.provider_refresh_token) }, remember_me ? cookie_options: session_cookie_options)
+        } else if (testRegEx(cookie.name, 'remember_me')) {
+          /* add remember me cookie */
+          setCookie(response, cookie, remember_me_cookie_options)
         } else {
-          response.headers.append('set-cookie', cookies.serialize(body.key, body.value, cookie_options))
-          if (data.provider_token && data.provider_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-token', JSON.stringify(data.provider_token), cookie_options))
-          if (data.provider_refresh_token && data.provider_refresh_token !== '') response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', JSON.stringify(data.provider_refresh_token), cookie_options))
+          /* add all other cookies */
+          setCookie(response, cookie)
         }
 
         return response
@@ -254,17 +185,13 @@ export const endpoints = (async ({ event, resolve }) => {
     } 
     
     if (request.method === 'DELETE') {
-      const body = request.body ? await request.json() : null
-      const expire_options = {
-        ...cookie_options,
-        maxAge: -1
-      }
+      const cookie: { name: string, value: string } = request.body ? await request.json() : null
       const response = new Response(null, { status: 204 })
 
-      response.headers.append('set-cookie', cookies.serialize(body.key, '', expire_options))
-      if (isAuthToken(body.key)) {
-        if (cookies.get('sb-provider-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-token', '', expire_options))
-        if (cookies.get('sb-provider-refresh-token')) response.headers.append('set-cookie', cookies.serialize('sb-provider-refresh-token', '', expire_options))
+      setCookie(response, cookie, expire_cookie_options)
+      if (isAuthToken(cookie.name)) {
+        if (cookies.get('sb-provider-token')) setCookie(response, { name: 'sb-provider-token', value: '' }, expire_cookie_options)
+        if (cookies.get('sb-provider-refresh-token')) setCookie(response, { name: 'sb-provider-refresh-token', value: '' }, expire_cookie_options)
       }
       
       return response

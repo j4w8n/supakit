@@ -1,4 +1,4 @@
-import { merge } from '../utils.js'
+import { merge, stringToBoolean } from '../utils.js'
 import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
 import { serialize } from 'cookie'
 
@@ -28,24 +28,14 @@ export const rememberMe = () => {
       .find((cookie) => cookie.match('supakit-rememberme'))
       ?.split('=')[1]
 
-    switch (remember_me_cookie) {
-      case 'true':
-        return true
-      case 'false':
-        return false
-      case undefined:
-        return _set(true)
-      default:
-        return true
-    }
+    return remember_me_cookie ? stringToBoolean(remember_me_cookie) : _set(true)
   }
   const _set = (value: boolean) => {
     document.cookie = serialize('supakit-rememberme', JSON.stringify(value), {
       ...(server_client_options ?? COOKIE_DEFAULTS),
       httpOnly: false,
       maxAge: 60 * 60 * 24 * 365 * 100,
-      sameSite: 'lax',
-      secure: false
+      sameSite: 'lax'
     })
     return value
   }

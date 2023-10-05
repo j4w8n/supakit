@@ -79,7 +79,7 @@ export const CookieStorage: SupportedStorage = {
     try {
       const res = await fetch(cookie_route, {
         method: 'POST',
-        body: JSON.stringify({ key, value }),
+        body: JSON.stringify({ name: key, value }),
         headers: {
           'x-csrf-token': csrf.token,
           'x-csrf-name': csrf.name
@@ -98,7 +98,7 @@ export const CookieStorage: SupportedStorage = {
     try {
       const res = await fetch(cookie_route, {
         method: 'DELETE',
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({ name: key, value: '' }),
         headers: {
           'x-csrf-token': csrf.token,
           'x-csrf-name': csrf.name
