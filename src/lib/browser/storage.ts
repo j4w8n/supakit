@@ -1,6 +1,7 @@
 import type { SupportedStorage } from '@supabase/supabase-js'
 import { browserEnv, isAuthToken } from '../utils.js'
 import { base } from '$app/paths'
+import { supabaseConfig } from '../config/index.js'
 
 let token = ''
 let name = ''
@@ -22,7 +23,7 @@ const csrf_route = `${base}/supakit/csrf`
 export const CookieStorage: SupportedStorage = {
   async getItem(key) {
     if (!browserEnv()) return null
-    if (isAuthToken(key) && cached_session) return cached_session
+    if ((supabaseConfig().get.client_options.auth?.storageKey === key || isAuthToken(key)) && cached_session) return cached_session
     let csrf = getCsrf()
 
     const getCookie = async () => {
@@ -35,10 +36,10 @@ export const CookieStorage: SupportedStorage = {
             'x-storage-key': key
           }
         })
-
+ 
         if (res.status === 200){
           const json: { cookie: any } = res.body ? await res.json() : { cookie: null }
-          if (isAuthToken(key)) cached_session = json.cookie
+          if (supabaseConfig().get.client_options.auth?.storageKey === key || isAuthToken(key)) cached_session = json.cookie
 
           return json.cookie
         } else {
@@ -74,7 +75,7 @@ export const CookieStorage: SupportedStorage = {
   },
   async setItem(key, value) {
     if (!browserEnv()) return
-    if (isAuthToken(key)) cached_session = JSON.parse(value)
+    if (supabaseConfig().get.client_options.auth?.storageKey === key || isAuthToken(key)) cached_session = JSON.parse(value)
     const csrf = getCsrf()
     try {
       const res = await fetch(cookie_route, {
@@ -93,7 +94,7 @@ export const CookieStorage: SupportedStorage = {
   },
   async removeItem(key) {
     if (!browserEnv()) return
-    if (isAuthToken(key)) cached_session = null
+    if (supabaseConfig().get.client_options.auth?.storageKey === key || isAuthToken(key)) cached_session = null
     const csrf = getCsrf()
     try {
       const res = await fetch(cookie_route, {

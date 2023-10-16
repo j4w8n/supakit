@@ -1,4 +1,4 @@
-import { getSupabaseLoadClientCookieOptions } from '../config/index.js'
+import { supabaseConfig } from '../config/index.js'
 import type { StateChangeCallback } from '../types/index.js'
 import type { Writable } from 'svelte/store'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
@@ -23,7 +23,7 @@ export const supabaseAuthStateChange = (client: SupabaseClient, store: Writable<
      * INITIAL_SESSION && initial covers logins where the page is refreshed
      */
     if (((event === 'SIGNED_IN' && !initial) || (event === 'INITIAL_SESSION' && initial)) && cached_expires_at === undefined && session) {
-      const cookie_options = getSupabaseLoadClientCookieOptions()
+      const { cookie_options } = supabaseConfig().get
       document.cookie = serialize('sb-temp-session', JSON.stringify(session), {
         ...cookie_options,
         httpOnly: false,

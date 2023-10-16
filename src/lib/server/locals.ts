@@ -3,16 +3,18 @@ import { createClient, type Session } from "@supabase/supabase-js"
 import { env } from '$env/dynamic/public'
 import { decodeBase64URL, isAuthToken } from '../utils.js'
 import { CookieStorage } from "./storage.js"
-import { getSupabaseServerClientOptions } from '../config/index.js'
+import { supabaseConfig } from '../config/index.js'
 
 export const locals = (async ({ event, resolve }) => {
   const { cookies, locals } = event
+  const { client_options, cookie_options } = supabaseConfig(cookies).get
   const temp_session = cookies.get('sb-temp-session') ? JSON.parse(cookies.get('sb-temp-session') || '') : null
-  const auth_cookie_exists = cookies.getAll().find(cookie => isAuthToken(cookie.name))
+  const auth_cookie_exists = cookies.getAll().find((cookie) =>
+    client_options.auth?.storageKey === cookie.name || isAuthToken(cookie.name)
+  )
   const session: Session | null = auth_cookie_exists ? JSON.parse(cookies.get(auth_cookie_exists.name) || '') : temp_session
   const provider_token: string | null = cookies.get('sb-provider-token') ? JSON.parse(cookies.get('sb-provider-token') || '') : null
   const provider_refresh_token: string | null = cookies.get('sb-provider-refresh-token') ? JSON.parse(cookies.get('sb-provider-refresh-token') || '') : null
-  const { client_options, cookie_options } = getSupabaseServerClientOptions()
   const jwt = session ? JSON.parse(decodeBase64URL(session.access_token.split('.')[1])) : null
   
   locals.cookie_options = cookie_options
@@ -34,9 +36,10 @@ export const locals = (async ({ event, resolve }) => {
       detectSessionInUrl: false,
       persistSession: true,
       storage: new CookieStorage({ cookies, cookie_options }),
-      flowType: client_options?.auth?.flowType ?? 'pkce',
-      debug: client_options?.auth?.debug ?? false,
-      ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
+      flowType: client_options.auth?.flowType ?? 'pkce',
+      debug: client_options.auth?.debug ?? false,
+      ...(client_options.auth?.storageKey ? { storageKey: client_options.auth.storageKey } : {}),
+      ...(client_options.auth?.lock ? { lock: client_options.auth.lock } : {})
     }
   })
 

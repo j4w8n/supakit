@@ -1,27 +1,35 @@
-import { getSupabaseServerClientOptions } from '../config/index.js'
+import { supabaseConfig, cached_options } from '../config/index.js'
 import { json, type Handle, type Cookies } from "@sveltejs/kit"
 import { createClient, type EmailOtpType, type Session } from "@supabase/supabase-js"
 import { csrfCheck, getCookieOptions, isAuthToken, stringToBoolean, testRegEx } from '../utils.js'
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
-import type { SecureCookieOptionsPlusName } from 'types/index.js'
+import type { CookieOptions } from 'types/index.js'
 
 export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
-  const { cookie_options } = getSupabaseServerClientOptions()
-  const { expire_cookie_options, session_cookie_options, remember_me_cookie_options } = getCookieOptions('all', cookie_options)
+
+  /* Config options are running in memory on the server-side, create a cookie */
+  if (cached_options) {
+    supabaseConfig(cookies).set = cached_options
+  }
+
+  const { cookie_options, client_options } = supabaseConfig(cookies).get
+  const { expire_cookie_options, config_cookie_options, session_cookie_options, remember_me_cookie_options } = getCookieOptions('all', cookie_options)
   const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     auth: {
       autoRefreshToken: false,
       detectSessionInUrl: false,
       storage: new CookieStorage({ cookies, cookie_options }),
       flowType: 'pkce',
-      ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
+      debug: client_options.auth?.debug ?? false,
+      ...(client_options.auth?.storageKey ? { storageKey: client_options.auth.storageKey } : {}),
+      ...(client_options.auth?.lock ? { lock: client_options.auth.lock } : {})
     }
   })
 
-  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SecureCookieOptionsPlusName = cookie_options) => {
+  const setCookie = (response: Response, cookie: { name: string, value: string }, options: CookieOptions = cookie_options) => {
     response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, options))
   }
 
@@ -38,6 +46,9 @@ export const endpoints = (async ({ event, resolve }) => {
       } else if (testRegEx(cookie.name, 'remember_me')) {
         /* add remember me cookie */
         setCookie(response, cookie, remember_me_cookie_options)
+      } else if (testRegEx(cookie.name, 'config')) {
+        /* add config cookie */
+        setCookie(response, cookie, config_cookie_options)
       } else {
         /* add all other cookies */
         setCookie(response, cookie)
@@ -52,7 +63,6 @@ export const endpoints = (async ({ event, resolve }) => {
       if (provider_token !== null || provider_refresh_token !== null) {
         const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
         const remember_me = stringToBoolean(remember_me_cookie)
-      
         if (provider_token) setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(provider_token) }, remember_me ? cookie_options : session_cookie_options)
         if (provider_refresh_token) setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(provider_refresh_token) }, remember_me ? cookie_options : session_cookie_options)
       }
@@ -166,7 +176,7 @@ export const endpoints = (async ({ event, resolve }) => {
         const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
         const remember_me = stringToBoolean(remember_me_cookie)
 
-        if (isAuthToken(cookie.name)) {
+        if (cookie.name === client_options.auth?.storageKey || isAuthToken(cookie.name)) {
           setCookie(response, cookie, remember_me ? cookie_options : session_cookie_options)
           if (data.provider_token && data.provider_token !== '') setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(data.provider_token) }, remember_me ? cookie_options: session_cookie_options)
           if (data.provider_refresh_token && data.provider_refresh_token !== '') setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(data.provider_refresh_token) }, remember_me ? cookie_options: session_cookie_options)
@@ -189,7 +199,7 @@ export const endpoints = (async ({ event, resolve }) => {
       const response = new Response(null, { status: 204 })
 
       setCookie(response, cookie, expire_cookie_options)
-      if (isAuthToken(cookie.name)) {
+      if (cookie.name === client_options.auth?.storageKey || isAuthToken(cookie.name)) {
         if (cookies.get('sb-provider-token')) setCookie(response, { name: 'sb-provider-token', value: '' }, expire_cookie_options)
         if (cookies.get('sb-provider-refresh-token')) setCookie(response, { name: 'sb-provider-refresh-token', value: '' }, expire_cookie_options)
       }
@@ -200,5 +210,8 @@ export const endpoints = (async ({ event, resolve }) => {
     return new Response(null, { status: 401 })
   }
 
+  /* Handle request to Supakit's config route */
+  if (url.pathname === `${base}/supakit/config` && request.method === 'GET') return json({ client_options })
+  
   return await resolve(event)
 }) satisfies Handle
