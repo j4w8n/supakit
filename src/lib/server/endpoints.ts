@@ -50,7 +50,7 @@ export const endpoints = (async ({ event, resolve }) => {
       const provider_refresh_token: string | null = session?.provider_refresh_token ?? null
 
       if (provider_token !== null || provider_refresh_token !== null) {
-        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
+        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'true'
         const remember_me = stringToBoolean(remember_me_cookie)
       
         if (provider_token) setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(provider_token) }, remember_me ? cookie_options : session_cookie_options)
@@ -163,7 +163,7 @@ export const endpoints = (async ({ event, resolve }) => {
       if (cookie) {
         const response = new Response(null)
         const data = JSON.parse(cookie.value) ?? cookie.value
-        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'false'
+        const remember_me_cookie = cookies.get('supakit-rememberme') ?? 'true'
         const remember_me = stringToBoolean(remember_me_cookie)
 
         if (isAuthToken(cookie.name)) {
