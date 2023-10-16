@@ -20,7 +20,8 @@ export const getCookieOptions = (type: CookieOptionTypes, options: SecureCookieO
   const { name, ...rest_cookie_options } = options
   const remember_me_cookie_options = {
     ...rest_cookie_options,
-    httpOnly: false
+    httpOnly: false,
+    maxAge: 60 * 60 * 24 * 365 * 100
   }
   const { expires, maxAge, ...session_cookie_options } = rest_cookie_options
   const expire_cookie_options = {
