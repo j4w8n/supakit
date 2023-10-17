@@ -7,7 +7,7 @@ export type CookieOptionTypes = 'config' | 'session' | 'expire' | 'remember_me' 
 export type KeyStringObjectAny = { [key: string]: any }
 export type SupakitRegExp = 'auth_token' | 'config' | 'code_verifier' | 'csrf' | 'provider_token' | 'remember_me'
 export type KeyStringObjectRegExp = { [key: string]: RegExp }
-export type CookieOptions = CookieSerializeOptions
+export type CookieOptions = Omit<CookieSerializeOptions, 'httpOnly'>
 export type EventCookieOptions = { cookie_options: CookieOptions }
 export type Fetch = {
   (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response>;
