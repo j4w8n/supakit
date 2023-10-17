@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
-import type { Fetch, GenericSchema, SupabaseClientOptionsWithLimitedAuth } from '../types/index.js'
+import type { Fetch, GenericSchema, SupabaseClientOptionsWithLimitedAuth, SupabaseConfig } from '../types/index.js'
 import { browserEnv } from '../utils.js'
 import { supabaseConfig } from '../config/index.js'
 
@@ -30,7 +30,8 @@ export const createSupabaseLoadClient = async <
     client_options = supabaseConfig().get.client_options
   } else {
     const config = await fetch('/supakit/config')
-    client_options = await config.json()
+    const res: SupabaseConfig = await config.json()
+    client_options = res.client_options
   }
 
   const client = createClient<Database, SchemaName, Schema>(supabase_url, supabase_key, {

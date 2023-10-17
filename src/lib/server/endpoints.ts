@@ -211,7 +211,7 @@ export const endpoints = (async ({ event, resolve }) => {
   }
 
   /* Handle request to Supakit's config route */
-  if (url.pathname === `${base}/supakit/config` && request.method === 'GET') return json({ client_options })
+  if (url.pathname === `${base}/supakit/config` && request.method === 'GET') return json({ client_options, cookie_options })
   
   return await resolve(event)
 }) satisfies Handle
