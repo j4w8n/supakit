@@ -1,7 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
-import type { Fetch, GenericSchema, SupabaseConfig } from '../types/index.js'
+import type { Fetch, GenericSchema, SupabaseClientOptionsWithLimitedAuth } from '../types/index.js'
 import { browserEnv } from '../utils.js'
+import { supabaseConfig } from '../config/index.js'
 
 let cached_browser_client: SupabaseClient<any, string, any> | undefined
 
@@ -19,11 +20,17 @@ export const createSupabaseLoadClient = async <
   supabase_key: string,
   fetch: Fetch
 ): Promise<SupabaseClient<Database, SchemaName, Schema>> => {
-  const config = await fetch('/supakit/config')
-  const { client_options }: SupabaseConfig = await config.json()
   const browser_env = browserEnv()
-  if (browser_env && cached_browser_client) {
-    return cached_browser_client as SupabaseClient<Database, SchemaName, Schema>
+  let client_options: SupabaseClientOptionsWithLimitedAuth<SchemaName>
+
+  if (browser_env) {
+    if (cached_browser_client) {
+      return cached_browser_client as SupabaseClient<Database, SchemaName, Schema>
+    }
+    client_options = supabaseConfig().get.client_options
+  } else {
+    const config = await fetch('/supakit/config')
+    client_options = await config.json()
   }
 
   const client = createClient<Database, SchemaName, Schema>(supabase_url, supabase_key, {
