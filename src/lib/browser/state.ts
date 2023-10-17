@@ -4,7 +4,13 @@ import type { Writable } from 'svelte/store'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
 import { serialize } from 'cookie'
 
-export const supabaseAuthStateChange = (client: SupabaseClient, store: Writable<Session | null> | null = null, callback: StateChangeCallback | null = null) => {
+export const supabaseAuthStateChange = ({ client, store, callback }: 
+  { 
+    client: SupabaseClient, 
+    store?: Writable<Session | null>, 
+    callback?: StateChangeCallback
+  }
+) => {
   let cached_expires_at: number | undefined
   let initial = true
 

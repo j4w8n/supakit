@@ -1,5 +1,5 @@
 import { COOKIE_DEFAULTS } from './config/index.js'
-import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, CookieOptions, SupakitRegExp } from './types/index.js'
+import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, CookieOptions, SupakitRegExp, ReturnCookieOptions } from './types/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
 let nested_merge_count = 0
@@ -15,12 +15,8 @@ const regexs: KeyStringObjectRegExp = {
 
 export const browserEnv = () => typeof document !== 'undefined'
 
-export const getCookieOptions = (type: CookieOptionTypes, options: CookieOptions): {
-  config_cookie_options?: CookieOptions,
-  expire_cookie_options?: CookieOptions,
-  remember_me_cookie_options?: CookieOptions,
-  session_cookie_options?: Omit<CookieOptions, 'maxAge' | 'expires'>
-} => {
+export const getCookieOptions = ({ options, type }: 
+  { options: CookieOptions, type: CookieOptionTypes }): ReturnCookieOptions => {
   const remember_me_cookie_options = {
     ...options,
     httpOnly: false,
@@ -56,19 +52,26 @@ export const getCookieOptions = (type: CookieOptionTypes, options: CookieOptions
   }
 }
 
+export const testRegEx = ({ string, type }: { string: string, type: SupakitRegExp }) => {
+  for (const key in regexs) {
+    if (key === type) return regexs[key].test(string)
+  }
+  return false
+}
+
 export const isAuthToken = (cookie_name: string) => {
-  return testRegEx(cookie_name, 'auth_token')
+  return testRegEx({ string: cookie_name, type: 'auth_token' })
 }
 
 export const isProviderToken = (cookie_name: string) => {
-  return testRegEx(cookie_name, 'provider_token')
+  return testRegEx({ string: cookie_name, type: 'provider_token' })
 }
 
-export const deepCopy = (object: object): any => {
+export const deepCopy = (object: {}): any => {
   return JSON.parse(JSON.stringify(object))
 }
 
-export const merge = (current: KeyStringObjectAny, updates: KeyStringObjectAny): any => {
+export const merge = ({ current, updates }: { current: KeyStringObjectAny, updates: KeyStringObjectAny }): any => {
   let copy = nested_merge_count === 0 ? deepCopy(current) : current
   if (updates) {
     for (let key of Object.keys(updates)) {
@@ -76,7 +79,7 @@ export const merge = (current: KeyStringObjectAny, updates: KeyStringObjectAny):
         copy[key] = updates[key]
       } else {
         nested_merge_count++
-        merge(copy[key], updates[key])
+        merge({ current: copy[key], updates: updates[key] })
       }
     }
   }
@@ -94,13 +97,6 @@ export const stringToBoolean = (string: string) => {
     default:
       return true
   }
-}
-
-export const testRegEx = (string: string, type: SupakitRegExp) => {
-  for (const key in regexs) {
-    if (key === type) return regexs[key].test(string)
-  }
-  return false
 }
 
 export const decodeBase64URL = (value: string): string => {

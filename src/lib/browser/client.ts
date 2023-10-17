@@ -15,11 +15,15 @@ export const createSupabaseLoadClient = async <
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
     : any
->(
+>({
+  supabase_url,
+  supabase_key,
+  fetch
+}: {
   supabase_url: string,
   supabase_key: string,
   fetch: Fetch
-): Promise<SupabaseClient<Database, SchemaName, Schema>> => {
+}): Promise<SupabaseClient<Database, SchemaName, Schema>> => {
   const browser_env = browserEnv()
   let client_options: SupabaseClientOptionsWithLimitedAuth<SchemaName>
 

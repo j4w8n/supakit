@@ -22,7 +22,7 @@ const CONFIG: SupabaseConfig = {
 export let cached_options: SupabaseConfig | null
 let options_initialized = false
 
-export const supabaseConfig = (cookies?: Cookies) => {
+export const supabaseConfig = ({ cookies }: { cookies?: Cookies } = {}) => {
   const _get = (): SupabaseConfig => {
     /* Config can be retrieved on client-side or server-side */
     if (browserEnv()) {
@@ -42,7 +42,7 @@ export const supabaseConfig = (cookies?: Cookies) => {
     if (!cookies && options_initialized) throw new Error('Setting config requires passing in the SvelteKit `cookies` function.')
     if (typeof config !== 'object') throw new Error('Config must be an object')
 
-    const merged_config: SupabaseConfig = merge(CONFIG, config)
+    const merged_config: SupabaseConfig = merge({ current: CONFIG, updates: config })
 
     if (!cookies) {
       /**
@@ -55,7 +55,7 @@ export const supabaseConfig = (cookies?: Cookies) => {
       /* Clear the cache */
       if (cached_options) cached_options = null
 
-      const cookie_options = config.cookie_options ? merge(COOKIE_DEFAULTS, config.cookie_options) : COOKIE_DEFAULTS
+      const cookie_options = config.cookie_options ? merge({ current: COOKIE_DEFAULTS, updates: config.cookie_options }) : COOKIE_DEFAULTS
 
       cookies.set('sb-config', JSON.stringify(merged_config), {
         ...cookie_options,

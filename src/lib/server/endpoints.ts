@@ -12,11 +12,11 @@ export const endpoints = (async ({ event, resolve }) => {
 
   /* Config options are running in memory on the server-side, create a cookie */
   if (cached_options) {
-    supabaseConfig(cookies).set = cached_options
+    supabaseConfig({ cookies }).set = cached_options
   }
 
-  const { cookie_options, client_options } = supabaseConfig(cookies).get
-  const { expire_cookie_options, config_cookie_options, session_cookie_options, remember_me_cookie_options } = getCookieOptions('all', cookie_options)
+  const { cookie_options, client_options } = supabaseConfig({ cookies }).get
+  const { expire_cookie_options, config_cookie_options, session_cookie_options, remember_me_cookie_options } = getCookieOptions({ options: cookie_options, type: 'all' })
   const supabase = createClient(env.PUBLIC_SUPABASE_URL || '', env.PUBLIC_SUPABASE_ANON_KEY || '', {
     auth: {
       autoRefreshToken: false,
@@ -36,17 +36,17 @@ export const endpoints = (async ({ event, resolve }) => {
   const setReturnCookies = (response: Response, cookies: Cookies, session?: Session | null) => {
     const existing_cookies = cookies.getAll()
     for (const cookie of existing_cookies) {
-      if (testRegEx(cookie.name, 'code_verifier') || testRegEx(cookie.name, 'csrf')) {
+      if (testRegEx({ string: cookie.name, type: 'code_verifier' }) || testRegEx({ string: cookie.name, type: 'csrf' })) {
         /* expire any existing csrf or code-verifier cookies */
         /**
           * exchangeCodeForSession() won't expire code-verifier cookies correctly because
           * of the custom response and nature of the cookies function.
           */
         setCookie(response, { name: cookie.name, value: '' }, expire_cookie_options)
-      } else if (testRegEx(cookie.name, 'remember_me')) {
+      } else if (testRegEx({ string: cookie.name, type: 'remember_me' })) {
         /* add remember me cookie */
         setCookie(response, cookie, remember_me_cookie_options)
-      } else if (testRegEx(cookie.name, 'config')) {
+      } else if (testRegEx({ string: cookie.name, type: 'config' })) {
         /* add config cookie */
         setCookie(response, cookie, config_cookie_options)
       } else {
@@ -180,7 +180,7 @@ export const endpoints = (async ({ event, resolve }) => {
           setCookie(response, cookie, remember_me ? cookie_options : session_cookie_options)
           if (data.provider_token && data.provider_token !== '') setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(data.provider_token) }, remember_me ? cookie_options: session_cookie_options)
           if (data.provider_refresh_token && data.provider_refresh_token !== '') setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(data.provider_refresh_token) }, remember_me ? cookie_options: session_cookie_options)
-        } else if (testRegEx(cookie.name, 'remember_me')) {
+        } else if (testRegEx({ string: cookie.name, type: 'remember_me' })) {
           /* add remember me cookie */
           setCookie(response, cookie, remember_me_cookie_options)
         } else {

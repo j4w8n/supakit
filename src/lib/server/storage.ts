@@ -18,20 +18,20 @@ export class CookieStorage implements StorageAdapter {
   setItem(key: string, value: string) {
     const remember_me_cookie = this.event.cookies.get('supakit-rememberme') ?? 'true'
     const remember_me = stringToBoolean(remember_me_cookie)
-    const { session_cookie_options, remember_me_cookie_options } = getCookieOptions('all', this.event.cookie_options)
+    const { session_cookie_options, remember_me_cookie_options } = getCookieOptions({ options: this.event.cookie_options, type: 'all' })
 
-    if ((!remember_me && (supabaseConfig(this.event.cookies).get.client_options.auth?.storageKey === key || isAuthToken(key) || isProviderToken(key)))) {
+    if ((!remember_me && (supabaseConfig({ cookies: this.event.cookies }).get.client_options.auth?.storageKey === key || isAuthToken(key) || isProviderToken(key)))) {
       this.event.cookies.set(key, value, session_cookie_options)
-    } else if (testRegEx(key, 'remember_me')) {
+    } else if (testRegEx({ string: key, type: 'remember_me' })) {
       this.event.cookies.set(key, value, remember_me_cookie_options)
     } else {
       this.event.cookies.set(key, value, this.event.cookie_options)
     }
   }
   removeItem(key: string) {
-    const { expire_cookie_options }= getCookieOptions('expire', this.event.cookie_options)
+    const { expire_cookie_options }= getCookieOptions({ options: this.event.cookie_options, type: 'expire' })
     this.event.cookies.delete(key, expire_cookie_options)
-    if (supabaseConfig(this.event.cookies).get.client_options.auth?.storageKey === key || isAuthToken(key)) {
+    if (supabaseConfig({ cookies: this.event.cookies }).get.client_options.auth?.storageKey === key || isAuthToken(key)) {
       if (this.event.cookies.get('sb-provider-token')) this.event.cookies.delete('sb-provider-token')
       if (this.event.cookies.get('sb-provider-refresh-token')) this.event.cookies.delete('sb-provider-refresh-token')
     }

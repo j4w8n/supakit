@@ -7,7 +7,7 @@ import { supabaseConfig } from '../config/index.js'
 
 export const locals = (async ({ event, resolve }) => {
   const { cookies, locals } = event
-  const { client_options, cookie_options } = supabaseConfig(cookies).get
+  const { client_options, cookie_options } = supabaseConfig({ cookies }).get
   const temp_session = cookies.get('sb-temp-session') ? JSON.parse(cookies.get('sb-temp-session') || '') : null
   const auth_cookie_exists = cookies.getAll().find((cookie) =>
     client_options.auth?.storageKey === cookie.name || isAuthToken(cookie.name)

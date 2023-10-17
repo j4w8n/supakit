@@ -8,6 +8,12 @@ export type KeyStringObjectAny = { [key: string]: any }
 export type SupakitRegExp = 'auth_token' | 'config' | 'code_verifier' | 'csrf' | 'provider_token' | 'remember_me'
 export type KeyStringObjectRegExp = { [key: string]: RegExp }
 export type CookieOptions = Omit<CookieSerializeOptions, 'httpOnly'>
+export type ReturnCookieOptions = { 
+  config_cookie_options?: CookieOptions,
+  expire_cookie_options?: CookieOptions,
+  remember_me_cookie_options?: CookieOptions,
+  session_cookie_options?: Omit<CookieOptions, 'maxAge' | 'expires'>
+}
 export type EventCookieOptions = { cookie_options: CookieOptions }
 export type Fetch = {
   (input: RequestInfo | URL, init?: RequestInit | undefined): Promise<Response>;
@@ -45,12 +51,16 @@ export function rememberMe() {
     get toggle(): boolean;
   }
 }
-export function supabaseAuthStateChange(
-  client: SupabaseClient,
-  store?: Writable<Session | null> | null, 
+export function supabaseAuthStateChange({
+  client,
+  store, 
+  callback
+}: {
+  client: SupabaseClient
+  store?: Writable<Session | null>
   callback?: StateChangeCallback
-): void
-export function supabaseConfig() {
+}): void
+export function supabaseConfig({ cookies }: { cookies?: Cookies } = {}) {
   return {
     get get(): SupabaseConfig;,
     set set(config: Partial<SupabaseConfig>): void;
@@ -65,8 +75,12 @@ export function createSupabaseLoadClient<
   Schema extends GenericSchema = Database[SchemaName] extends GenericSchema
     ? Database[SchemaName]
     : any
->(
-  supabase_url: string, 
-  supabase_key: string,
+>({
+  supabase_url, 
+  supabase_key,
+  fetch
+}: {
+  supabase_url: string
+  supabase_key: string
   fetch: Fetch
-): Promise<SupabaseClient<Database, SchemaName, Schema>>
+}): Promise<SupabaseClient<Database, SchemaName, Schema>>
