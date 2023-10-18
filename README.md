@@ -111,18 +111,18 @@ import type { Database } from '$lib/database.d'
 export const load = async ({ data: { session }, fetch, depends }) => {
   depends('supabase:auth')
 
-  const supabase = createSupabaseLoadClient<Database>(
-    env.PUBLIC_SUPABASE_URL, 
-    env.PUBLIC_SUPABASE_ANON_KEY,
+  const supabase = createSupabaseLoadClient<Database>({
+    supabase_url: env.PUBLIC_SUPABASE_URL, 
+    supabase_key: env.PUBLIC_SUPABASE_ANON_KEY,
     fetch
-  )
+  })
 
   return { supabase, session }
 }
 ```
 
 ### Declare onAuthStateChange
-Listen for auth changes in your root +layout.svelte file. You'll need to pass-in your Supabase load client as the first parameter.
+Listen for auth changes in your root +layout.svelte file. You'll need to pass-in your Supabase load client.
 
 If using `depends` to invalidate data after session changes, be sure to setup the callback function. Otherwise, 
 reference [auth state](#auth-state) to use Supakit's session store.
@@ -136,9 +136,12 @@ reference [auth state](#auth-state) to use Supakit's session store.
   export let data
 
   onMount(() => {
-    supabaseAuthStateChange(data.supabase, null, ({ event, session }) => {
-      if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
-    }))
+    supabaseAuthStateChange({
+      client: data.supabase, 
+      callback: ({ event, session }) => {
+        if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
+      }
+    })
   })
 </script>
 ```
@@ -192,7 +195,7 @@ event.locals.cookie_options
 > `expires_in` will get calculated, and reflect how many seconds are left until your `access_token` expires. `expires_at` is taken directly from the jwt. Keep in mind that these two values are only updated when the `handle` function is called in `hooks.server.ts`; so don't rely on them for realtime info.
 
 ### Server client
-The built-in Supabase server client relies on `$env/dynamic/public`. If there is a logged-in user, they're automatically "signed in" to this client.
+The built-in Supabase server client relies on `$env/dynamic/public`. If there is a logged-in user, they're automatically "signed in" to this client. All you need to do is use the client.
 
 ```ts
 /* some server-side load file, for example src/routes/+layout.server.ts */
@@ -254,7 +257,7 @@ supabaseConfig({
     }
   },
   cookie_options: {
-    maxAge: 60 * 60 * 24 * 30 /* one month */
+    maxAge: 60 * 60 * 24 * 30
   }
 })
 
@@ -280,7 +283,10 @@ const { cookie_options } = supabaseConfig().get
 export const yourHandler = (async ({ event, resolve }) => {
   if ('some check') {
     const response = new Response(null)
-    response.headers.append('set-cookie', event.cookies.serialize(`cookie-name`, token, event.locals.cookie_options))
+    response.headers.append(
+      'set-cookie', 
+      event.cookies.serialize(`cookie-name`, token, event.locals.cookie_options)
+    )
     return response
   }
 
@@ -356,11 +362,11 @@ import type { Database } from '$lib/database.d'
 export const load = async ({ data: { session }, fetch, depends }) => {
   depends('supabase:auth')
 
-  const supabase = createSupabaseLoadClient<Database>(
-    env.PUBLIC_SUPABASE_URL, 
-    env.PUBLIC_SUPABASE_ANON_KEY,
+  const supabase = createSupabaseLoadClient<Database>({
+    supabase_url: env.PUBLIC_SUPABASE_URL, 
+    supabase_key: env.PUBLIC_SUPABASE_ANON_KEY,
     fetch
-  )
+  })
 
   return { supabase, session }
 }
@@ -398,7 +404,7 @@ Setup
   $session_store = data.session
 
   onMount(() => {
-    supabaseAuthStateChange(data.supabase, session_store)
+    supabaseAuthStateChange({ client: data.supabase, store: session_store })
   })
 </script>
 ```
@@ -419,15 +425,6 @@ Page Usage
 `supabaseAuthStateChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
 
 If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This option is usually used in lieu of SvelteKit's `invalidate()` and `depends()` functions. Using both methods would be uncommon.
-
-Type: 
-```ts
-supabaseAuthStateChange(
-  client: SupabaseClient, 
-  store?: Writable<Session | null> | null, 
-  callback?: (({ event, session }: { event: string, session: Session | null }) => void)
-)
-```
 
 Example:
 ```html
@@ -450,14 +447,18 @@ Example:
   $session_store = data.session
 
   onMount(() => {
-    supabaseAuthStateChange(data.supabase, session_store, ({ event, session }) => {
-      /**
-       * Put any post-event code here.
-       * 
-       * e.g. If you don't use Supakit's session store, then you'll likely want
-       * to add the below; as well as change `session_store`, above, to `null`.
-       */
-      if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
+    supabaseAuthStateChange({ 
+      client: data.supabase, 
+      store: session_store, 
+      callback: ({ event, session }) => {
+        /**
+         * Put any post-event code here.
+         * 
+         * e.g. If you don't use Supakit's session store, then you'll likely want
+         * to add the below; as well as change `session_store`, above, to `null`.
+         */
+        if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
+      }
     })
   })
 </script>
