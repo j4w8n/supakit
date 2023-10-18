@@ -69,19 +69,16 @@ supabase gen types typescript --linked > src/lib/database.d.ts
 ```
 
 Ensure your app.d.ts file includes the following.
-
-> `cookie_options` is only needed if you plan to set additional cookies on the server-side and wanna use Supakit's cookie options; or if you pass in custom cookie options. See [Cookie Options](#cookie-options) to learn how to change the defaults.
-
 ```ts
 /* src/app.d.ts */
 import { SupabaseClient, Session } from '@supabase/supabase-js'
 import { Database } from '$lib/database.d'
-import { SecureCookieOptionsPlusName } from 'supakit'
+import { CookieOptions } from 'supakit'
 
 declare global {
   namespace App {
     interface Locals {
-      cookie_options: SecureCookieOptionsPlusName;
+      cookie_options: CookieOptions;
       session: Session | null;
       supabase: SupabaseClient<Database>;
     }
@@ -97,10 +94,6 @@ declare global {
 Create a Supabase client in your root +layout.ts file. We're using `$env/dynamic` in the example, but you can also use `$env/static` if it's a better fit for your use-case.
 
 This client is available in `data` and `$page.data` in your downstream load functions and pages.
-
-If you want to use SvelteKit's native invalidate method, after session changes, be sure to use `depends` below. Otherwise, you can omit and setup the [session store](#session-store).
-
-Note that SvelteKit's `fetch` must be passed as the third parameter to the client.
 
 ```ts
 /* src/routes/layout.ts */
@@ -123,9 +116,6 @@ export const load = async ({ data: { session }, fetch, depends }) => {
 
 ### Declare onAuthStateChange
 Listen for auth changes in your root +layout.svelte file. You'll need to pass-in your Supabase load client.
-
-If using `depends` to invalidate data after session changes, be sure to setup the callback function. Otherwise, 
-reference [auth state](#auth-state) to use Supakit's session store.
 
 ```html
 <!-- src/routes/+layout.svelte -->
@@ -157,7 +147,7 @@ export const handle = supakit
 ```
 
 #### Supakit Lite
-If you don't want Supakit to handle server-side features like populating `event.locals` and creating a server client, then you can use a different import which will only handle setting cookies and the server-side auth callback.
+If you don't want Supakit to handle server-side features like populating `event.locals` and creating a server client, then you can use a different import.
 
 ```ts
 /* src/hooks.server.ts */
@@ -213,7 +203,7 @@ export const load = ({ locals: { session, supabase } }) => {
 If you'd like to set options, pass them into a function at the root of your server hooks.
 
 #### Types
-Defaults are shown as the last option.
+Defaults are shown as the last option. You can reference more client options at [SupabaseClientOptions](https://github.com/supabase/supabase-js/blob/master/src/lib/types.ts).
 
 Client Auth Types:
 ```ts
@@ -223,9 +213,8 @@ auth: {
   lock?: LockFunc
 }
 ```
-> [LockFunc](https://github.com/supabase/gotrue-js/blob/master/src/lib/types.ts#L53)
 
-You can reference more client options at [SupabaseClientOptions](https://github.com/supabase/supabase-js/blob/master/src/lib/types.ts).
+> For help with the [LockFunc](https://github.com/supabase/gotrue-js/blob/master/src/lib/types.ts#L53) type, checkout the source.
 
 Cookie Type:
 ```ts
@@ -265,10 +254,10 @@ export const handle = supakit
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
-> Supakit relies on the `httpOnly` value to be `true` for better cookie security. Typescript will show an error if you try to pass it in.
+> Supakit relies on the `httpOnly` value to be `true` for better cookie security; and typescript will show an error if you try to pass it in.
 
 #### Custom Cookies
-If you need to set your own cookies, you can import `supabaseConfig` on the client-side or by using `event.locals.cookie_options` on the server-side to get cookie options.
+If you need to set your own cookies, you can grab options with `supabaseConfig` on the client-side or by using `event.locals.cookie_options` on the server-side.
 
 Examples:
 ```ts
@@ -409,7 +398,7 @@ Setup
 </script>
 ```
 Page Usage
-```svelte
+```html
 <!-- /src/routes/some/path/+page.svelte -->
 <script lang="ts">
   import { getSessionStore } from 'supakit'
@@ -422,9 +411,9 @@ Page Usage
 ```
 
 ### Auth State
-`supabaseAuthStateChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store, and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
+`supabaseAuthStateChange()` handles logic for Supabase's `onAuthStateChange()`. A Supabase client is required to be passed-in. Then it takes an optional Svelte store and a callback function. The callback function receives the Supabase `{ event, session }` object as a parameter, for doing additional work after an auth event.
 
-If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This option is usually used in lieu of SvelteKit's `invalidate()` and `depends()` functions. Using both methods would be uncommon.
+If you pass in a store, Supakit will hydrate it with the Supabase session after the `INITIAL_SESSION`, `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED`, and `USER_UPDATED` events. This option is usually used in lieu of SvelteKit's `invalidate()` and `depends()` functions.
 
 Example:
 ```html
@@ -455,7 +444,7 @@ Example:
          * Put any post-event code here.
          * 
          * e.g. If you don't use Supakit's session store, then you'll likely want
-         * to add the below; as well as change `session_store`, above, to `null`.
+         * to add the below.
          */
         if (data.session.expires_at !== session.expires_at) invalidate('supabase:auth')
       }
@@ -486,9 +475,9 @@ Supakit maintains a session cache inside it's custom `CookieStorage` for the Sup
 Because Supakit uses secure httpOnly cookie storage: setting, getting, and deleting the session requires a request to the server. This causes a delay between sending the request, receiving the response, and finally setting the cookie in the browser. This can cause a timing issue after a user logs in for the first time; specifically if you have callback code for `supabaseAuthStateChange()`. To work around this, Supakit will set a non-httpOnly cookie which expires in 5 seconds. This allows any affected code to send the temporary cookie `sb-temp-session` to the server, so that the server will know someone is logged in. This cookie exists in the browser, until it's closed; but once it has expired, it cannot be accessed via XSS attacks.
 
 ### Remember Me
-Determines if Supakit remembers a logged-in user or if they are logged out after closing the browser. Defaults to true, whether you use the feature or not.
+Determines if Supakit remembers a logged-in user or if they are logged out after closing the browser. If you don't use this feature, the default is to remember a user.
 
-You can give users the option by adding a checkbox input to your login form, then importing and using the function.
+To use this feature, add a checkbox input to your login form; then import and use the function.
 
 ```html
 /* src/routes/login/+page.svelte */
