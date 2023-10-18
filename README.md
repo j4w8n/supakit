@@ -250,7 +250,7 @@ Example:
 /* src/hooks.server.ts */
 import { supakit, supabaseConfig } from 'supakit'
 
-supabaseConfig({
+supabaseConfig().set = {
   client_options: {
     auth: {
       debug: true
@@ -259,7 +259,7 @@ supabaseConfig({
   cookie_options: {
     maxAge: 60 * 60 * 24 * 30
   }
-})
+}
 
 export const handle = supakit
 ```
