@@ -200,7 +200,26 @@ export const load = ({ locals: { session, supabase } }) => {
 ```
 
 ### Client and Cookie Options
-If you'd like to set options, pass them into a function at the root of your server hooks.
+If you'd like to set options, pass them into the `supabaseConfig` function at the root of your server hooks.
+
+Example:
+```ts
+/* src/hooks.server.ts */
+import { supakit, supabaseConfig } from 'supakit'
+
+supabaseConfig().set = {
+  client_options: {
+    auth: {
+      debug: true
+    }
+  },
+  cookie_options: {
+    maxAge: 60 * 60 * 24 * 30
+  }
+}
+
+export const handle = supakit
+```
 
 #### Types
 Defaults are shown as the last option. You can reference more client options at [SupabaseClientOptions](https://github.com/supabase/supabase-js/blob/master/src/lib/types.ts).
@@ -232,25 +251,6 @@ client_options = {
     flowType: 'pkce'
   }
 }
-```
-
-Example:
-```ts
-/* src/hooks.server.ts */
-import { supakit, supabaseConfig } from 'supakit'
-
-supabaseConfig().set = {
-  client_options: {
-    auth: {
-      debug: true
-    }
-  },
-  cookie_options: {
-    maxAge: 60 * 60 * 24 * 30
-  }
-}
-
-export const handle = supakit
 ```
 
 > By default SvelteKit sets `httpOnly` and `secure` to `true`, and `sameSite` to `lax`.
