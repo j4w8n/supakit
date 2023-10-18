@@ -60,8 +60,7 @@ export const supabaseConfig = ({ cookies }: { cookies?: Cookies } = {}) => {
       cookies.set('sb-config', JSON.stringify(merged_config), {
         ...cookie_options,
         httpOnly: false,
-        maxAge: COOKIE_DEFAULTS.maxAge,
-        sameSite: 'lax'
+        maxAge: COOKIE_DEFAULTS.maxAge
       })
     }
   }
