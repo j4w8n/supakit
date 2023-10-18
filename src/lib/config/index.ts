@@ -1,24 +1,74 @@
-import { merge, stringToBoolean } from '../utils.js'
-import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
-import { serialize } from 'cookie'
+import { browserEnv, merge, stringToBoolean } from '../utils.js'
+import type { SupabaseConfig } from '../types/index.js'
+import { parse, serialize } from 'cookie'
+import type { Cookies } from '@sveltejs/kit'
+import type { AuthFlowType } from '@supabase/supabase-js'
 
-const COOKIE_DEFAULTS = {
+export const COOKIE_DEFAULTS = {
   path: '/',
   maxAge: 60 * 60 * 24 * 365
 }
-const SERVER_CLIENT_DEFAULTS = {
+
+const CLIENT_DEFAULTS = {
   auth: {
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    flowType: 'pkce'
+    flowType: 'pkce' as AuthFlowType
   }
 }
-let load_client_cookie_options: SecureCookieOptionsPlusName
-let server_client_options: ServerClientOptions
-
-const SERVER_DEFAULTS = {
+const CONFIG: SupabaseConfig = {
   cookie_options: COOKIE_DEFAULTS,
-  client_options: SERVER_CLIENT_DEFAULTS
+  client_options: CLIENT_DEFAULTS
+}
+
+export let cached_options: SupabaseConfig | null
+let options_initialized = false
+
+export const supabaseConfig = ({ cookies }: { cookies?: Cookies } = {}) => {
+  const _get = (): SupabaseConfig => {
+    /* Config can be retrieved on client-side or server-side */
+    if (browserEnv()) {
+      const config_cookie = document.cookie
+        .split('; ')
+        .find((cookie) => cookie.match('sb-config'))
+
+      return config_cookie ? JSON.parse(parse(config_cookie)['sb-config']) : CONFIG
+    } else {
+      if (!cookies) throw new Error('Getting config on the server requires passing in the SvelteKit `cookies` function.')
+      const config_cookie = cookies.get('sb-config')
+      return config_cookie ? JSON.parse(config_cookie) : CONFIG
+    }
+  }
+  const _set = (config: Partial<SupabaseConfig>) => {
+    if (browserEnv()) throw new Error('Config must be set on the server-side.')
+    if (!cookies && options_initialized) throw new Error('Setting config requires passing in the SvelteKit `cookies` function.')
+    if (typeof config !== 'object') throw new Error('Config must be an object')
+
+    const merged_config: SupabaseConfig = merge({ current: CONFIG, updates: config })
+
+    if (!cookies) {
+      /**
+       * Options being set from src/hooks.server.ts,
+       * save to memory.
+       */
+      cached_options = merged_config
+      options_initialized = true
+    } else {
+      /* Clear the cache */
+      if (cached_options) cached_options = null
+
+      const cookie_options = config.cookie_options ? merge({ current: COOKIE_DEFAULTS, updates: config.cookie_options }) : COOKIE_DEFAULTS
+
+      cookies.set('sb-config', JSON.stringify(merged_config), {
+        ...cookie_options,
+        httpOnly: false,
+        maxAge: COOKIE_DEFAULTS.maxAge
+      })
+    }
+  }
+
+  return {
+    get get() { return _get() },
+    set set(config: Partial<SupabaseConfig>) { _set(config) }
+  }
 }
 
 export const rememberMe = () => {
@@ -32,7 +82,7 @@ export const rememberMe = () => {
   }
   const _set = (value: boolean) => {
     document.cookie = serialize('supakit-rememberme', JSON.stringify(value), {
-      ...(server_client_options ?? COOKIE_DEFAULTS),
+      ...(supabaseConfig().get.cookie_options  ?? COOKIE_DEFAULTS),
       httpOnly: false,
       maxAge: 60 * 60 * 24 * 365 * 100,
       sameSite: 'lax'
@@ -50,24 +100,4 @@ export const rememberMe = () => {
     get toggle() { return _toggle() }
   }
 
-}
-
-export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusName => {
-  return load_client_cookie_options ?? COOKIE_DEFAULTS
-}
-
-export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusName) => {
-  if (typeof value !== 'object') throw new Error('Cookie options must be an object')
-
-  load_client_cookie_options = merge(COOKIE_DEFAULTS, value)
-}
-
-export const getSupabaseServerClientOptions = (): ServerClientOptions => {
-  return server_client_options ?? SERVER_DEFAULTS
-}
-
-export const setSupabaseServerClientOptions = (value: ServerClientOptions): void => {
-  if (typeof value !== 'object') throw new Error('Server options must be an object')
-  
-  if (value.client_options || value.cookie_options) server_client_options = merge(SERVER_DEFAULTS, value)
 }
