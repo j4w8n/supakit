@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
 import { setSupabaseLoadClientCookieOptions } from '../config/index.js'
 import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptionsPlusName, GenericSchema } from '../types/index.js'
@@ -18,6 +18,7 @@ export const createSupabaseLoadClient = <
 >(
   supabase_url: string,
   supabase_key: string,
+  session: Session | null,
   options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
   cookie_options?: SecureCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName, Schema> => {
@@ -32,7 +33,7 @@ export const createSupabaseLoadClient = <
       autoRefreshToken: browser_env,
       detectSessionInUrl: browser_env,
       persistSession: true,
-      storage: CookieStorage,
+      storage: new CookieStorage(session),
       flowType: options?.auth?.flowType ?? 'pkce',
       debug: options?.auth?.debug ?? false,
       ...(cookie_options?.name ? { storageKey: cookie_options.name } : {})
