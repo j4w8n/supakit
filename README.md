@@ -98,7 +98,7 @@ Create a Supabase client in your root +layout.ts file. We're using `$env/dynamic
 
 This client will now be available in either `data` or `$page.data` in your downstream load functions and pages.
 
-Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the third parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
+Pass in an object of [Supabase Client Options](https://supabase.com/docs/reference/javascript/initializing) as the fourth parameter to `createSupabaseLoadClient`. Any options you pass in here, you'll want to setup for the [server client](#server-side-client-and-options) as well.
 
 Since Supakit only allows certain auth options, we've included them below. Type defaults are shown as the last option.
 
@@ -121,7 +121,8 @@ export const load = async ({ data: { session }, depends }) => {
 
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
-    env.PUBLIC_SUPABASE_ANON_KEY
+    env.PUBLIC_SUPABASE_ANON_KEY,
+    session
   )
 
   return { supabase, session }
@@ -307,7 +308,8 @@ import type { Database } from '$lib/database.d'
 export const load = async ({ data: { session } }) => {
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
-    env.PUBLIC_SUPABASE_ANON_KEY, {
+    env.PUBLIC_SUPABASE_ANON_KEY, 
+    session, {
       auth: {
         flowType: 'implicit'
       }
@@ -437,7 +439,7 @@ Because Supakit uses secure httpOnly cookie storage: setting, getting, and delet
 #### Cookie Options
 You can set your own options by passing in an object of `SecureCookieOptions` plus `name` for a custom cookie storage key. Whatever you pass in will be merged with the defaults - overriding when appropriate. Cookie options should be the same for the Load client and Server client.
 
-This is the fourth parameter for `createSupabaseLoadClient`.
+This is the fifth parameter for `createSupabaseLoadClient`.
 
 Type:
 ```ts
@@ -463,7 +465,8 @@ export const load = async ({ data: { session } }) => {
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
     env.PUBLIC_SUPABASE_ANON_KEY,
-    {}, /* Supabase client options is the third parameter */
+    session,
+    {}, /* Supabase client options is the fourth parameter */
     {
       maxAge: 60 * 60 * 24 * 365 * 100,
       sameSite: 'strict',
@@ -549,6 +552,7 @@ export const load = async ({ data: { session } }) => {
   const supabase = createSupabaseLoadClient<Database>(
     env.PUBLIC_SUPABASE_URL, 
     env.PUBLIC_SUPABASE_ANON_KEY,
+    session,
     {
       auth: {
         debug: true
