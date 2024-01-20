@@ -20,8 +20,8 @@ export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export type ServerClientOptions = { 
-  cookie_options: SecureCookieOptionsPlusName
-  client_options: SupabaseClientOptionsWithLimitedAuth
+  cookie_options?: SecureCookieOptionsPlusName
+  client_options?: SupabaseClientOptionsWithLimitedAuth
 }
 export type GenericSchema = {
   Tables: Record<string, GenericTable>
