@@ -1,7 +1,6 @@
 import { merge, stringToBoolean } from '../utils.js'
-import type { SecureCookieOptionsPlusPathAndName, MaybeServerClientOptions, ServerClientOptions } from '../types/index.js'
+import type { SvelteKitCookieOptionsPlusName, MaybeServerClientOptions, ServerClientOptions } from '../types/index.js'
 import { serialize } from 'cookie'
-import type { SupabaseAuthClientOptions } from '@supabase/supabase-js/dist/module/lib/types.js'
 
 const COOKIE_DEFAULTS = {
   path: '/',
@@ -14,8 +13,8 @@ const SERVER_CLIENT_DEFAULTS = {
     flowType: 'pkce'
   }
 }
-let load_client_cookie_options: SecureCookieOptionsPlusPathAndName
-let server_client_options: SupabaseAuthClientOptions
+let load_client_cookie_options: SvelteKitCookieOptionsPlusName
+let server_client_options: ServerClientOptions
 
 const SERVER_DEFAULTS = {
   cookie_options: COOKIE_DEFAULTS,
@@ -53,11 +52,11 @@ export const rememberMe = () => {
 
 }
 
-export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusPathAndName => {
+export const getSupabaseLoadClientCookieOptions = (): SvelteKitCookieOptionsPlusName => {
   return load_client_cookie_options ?? COOKIE_DEFAULTS
 }
 
-export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusPathAndName) => {
+export const setSupabaseLoadClientCookieOptions = (value: SvelteKitCookieOptionsPlusName) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
 
   load_client_cookie_options = merge(COOKIE_DEFAULTS, value)

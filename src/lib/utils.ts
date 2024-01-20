@@ -1,4 +1,4 @@
-import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, SecureCookieOptionsPlusPathAndName, SupakitRegExp } from './types/index.js'
+import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, SvelteKitCookieOptions, SvelteKitCookieOptionsPlusName, SupakitRegExp } from './types/index.js'
 import { getSupabaseLoadClientCookieOptions } from './config/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
@@ -12,10 +12,10 @@ const regexs: KeyStringObjectRegExp = {
 
 export const browserEnv = () => typeof document !== 'undefined'
 
-export const getCookieOptions = (type: CookieOptionTypes, options: SecureCookieOptionsPlusPathAndName): {
-  expire_cookie_options?: Omit<SecureCookieOptionsPlusPathAndName, 'name'>,
-  remember_me_cookie_options?: Omit<SecureCookieOptionsPlusPathAndName, 'name'>,
-  session_cookie_options?: Omit<SecureCookieOptionsPlusPathAndName, 'maxAge' | 'expires' | 'name'>
+export const getCookieOptions = (type: CookieOptionTypes, options: SvelteKitCookieOptionsPlusName): {
+  expire_cookie_options?: SvelteKitCookieOptions,
+  remember_me_cookie_options?: SvelteKitCookieOptions,
+  session_cookie_options?: Omit<SvelteKitCookieOptions, 'maxAge' | 'expires'>
 } => {
   const { name, ...rest_cookie_options } = options
   const remember_me_cookie_options = {

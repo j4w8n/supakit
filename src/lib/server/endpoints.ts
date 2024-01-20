@@ -5,8 +5,7 @@ import { csrfCheck, getCookieOptions, isAuthToken, stringToBoolean, testRegEx } 
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
-import type { SecureCookieOptionsPlusPathAndName } from '../types/index.js'
-import type { CookieSerializeOptions } from 'cookie'
+import type { SvelteKitCookieOptions } from '../types/index.js'
 
 export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
@@ -22,7 +21,7 @@ export const endpoints = (async ({ event, resolve }) => {
     }
   })
 
-  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SecureCookieOptionsPlusPathAndName = cookie_options) => {
+  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SvelteKitCookieOptions = cookie_options) => {
     response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, options))
   }
 

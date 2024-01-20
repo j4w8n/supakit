@@ -3,12 +3,13 @@ import type { Writable } from 'svelte/store'
 import type { CookieSerializeOptions } from 'cookie'
 import type { Handle } from '@sveltejs/kit'
 
-export type CookieOptions = { cookie_options: SecureCookieOptionsPlusPathAndName }
+export type SvelteKitCookieOptions = CookieSerializeOptions & {path: string }
+export type SvelteKitCookieOptionsPlusName = SvelteKitCookieOptions & { name?: string }
+export type CookieOptions = { cookie_options: SvelteKitCookieOptionsPlusName }
 export type CookieOptionTypes = 'session' | 'expire' | 'remember_me' | 'all'
 export type KeyStringObjectAny = {[key: string]: any}
 export type SupakitRegExp = 'auth_token' | 'code_verifier' | 'csrf' | 'provider_token' | 'remember_me'
 export type KeyStringObjectRegExp = { [key: string]: RegExp }
-export type SecureCookieOptionsPlusPathAndName = CookieSerializeOptions & {path: string } & { name?: string }
 export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 	SupabaseClientOptions<SchemaName>,
 	'auth'
@@ -20,11 +21,11 @@ export type SupabaseClientOptionsWithLimitedAuth<SchemaName = 'public'> = Omit<
 }
 export type StateChangeCallback = ({ event, session }: { event: AuthChangeEvent, session: Session | null }) => Promise<type> | void
 export type ServerClientOptions = { 
-  cookie_options: SecureCookieOptionsPlusPathAndName
+  cookie_options: SvelteKitCookieOptionsPlusName
   client_options: SupabaseClientOptions<Schema>
 }
 export type MaybeServerClientOptions = { 
-  cookie_options?: SecureCookieOptionsPlusPathAndName
+  cookie_options?: SvelteKitCookieOptionsPlusName
   client_options?: SupabaseClientOptionsWithLimitedAuth
 }
 export type GenericSchema = {
@@ -49,8 +50,8 @@ export function supabaseAuthStateChange(
   callback?: StateChangeCallback
 ): void
 export function getSessionStore(): Writable<Session | null>
-export function getSupabaseLoadClientCookieOptions(): SecureCookieOptionsPlusPathAndName
-export function setSupabaseLoadClientCookieOptions({}: SecureCookieOptionsPlusPathAndName): void
+export function getSupabaseLoadClientCookieOptions(): SvelteKitCookieOptionsPlusName
+export function setSupabaseLoadClientCookieOptions({}: SvelteKitCookieOptionsPlusName): void
 export function getSupabaseServerClientOptions(): ServerClientOptions
 export function setSupabaseServerClientOptions({}: MaybeServerClientOptions): void
 export function createSupabaseLoadClient<
@@ -66,5 +67,5 @@ export function createSupabaseLoadClient<
   supabase_key: string,
   session: Session | null,
   options?: SupabaseClientOptionsWithLimitedAuth, 
-  cookie_options?: SecureCookieOptionsPlusPathAndName
+  cookie_options?: SvelteKitCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName, Schema>
