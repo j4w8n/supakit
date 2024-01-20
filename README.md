@@ -1,6 +1,11 @@
 # Supakit
 A Supabase auth helper for SvelteKit.
 
+v2.0.0 is breaking, as it requires the following:
+- @sveltejs/kit ^2.4.1
+- svelte >=4.2.9
+- vite ^5.0.12
+
 ## Differences from the official Supabase Sveltekit auth helper
 - Uses `httpOnly` cookie storage, for tighter security against XSS. This includes CSRF protection for the endpoints that Supakit creates.<sup>[1](#httponly-cookie-exception)</sup>
 - "Remember Me" feature.
