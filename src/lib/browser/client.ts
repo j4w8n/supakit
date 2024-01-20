@@ -1,7 +1,7 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js'
 import { CookieStorage } from './storage.js'
 import { setSupabaseLoadClientCookieOptions } from '../config/index.js'
-import type { SupabaseClientOptionsWithLimitedAuth, SecureCookieOptionsPlusName, GenericSchema } from '../types/index.js'
+import type { SupabaseClientOptionsWithLimitedAuth, SvelteKitCookieOptionsPlusName, GenericSchema } from '../types/index.js'
 import { browserEnv } from '../utils.js'
 
 let cached_browser_client: SupabaseClient<any, string, any> | undefined
@@ -20,7 +20,7 @@ export const createSupabaseLoadClient = <
   supabase_key: string,
   session: Session | null,
   options?: SupabaseClientOptionsWithLimitedAuth<SchemaName>,
-  cookie_options?: SecureCookieOptionsPlusName
+  cookie_options?: SvelteKitCookieOptionsPlusName
 ): SupabaseClient<Database, SchemaName, Schema> => {
   const browser_env = browserEnv()
   if (browser_env && cached_browser_client) {

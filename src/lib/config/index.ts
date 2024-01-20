@@ -1,5 +1,5 @@
 import { merge, stringToBoolean } from '../utils.js'
-import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
+import type { SvelteKitCookieOptionsPlusName, MaybeServerClientOptions, ServerClientOptions } from '../types/index.js'
 import { serialize } from 'cookie'
 
 const COOKIE_DEFAULTS = {
@@ -13,7 +13,7 @@ const SERVER_CLIENT_DEFAULTS = {
     flowType: 'pkce'
   }
 }
-let load_client_cookie_options: SecureCookieOptionsPlusName
+let load_client_cookie_options: SvelteKitCookieOptionsPlusName
 let server_client_options: ServerClientOptions
 
 const SERVER_DEFAULTS = {
@@ -52,11 +52,11 @@ export const rememberMe = () => {
 
 }
 
-export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusName => {
+export const getSupabaseLoadClientCookieOptions = (): SvelteKitCookieOptionsPlusName => {
   return load_client_cookie_options ?? COOKIE_DEFAULTS
 }
 
-export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusName) => {
+export const setSupabaseLoadClientCookieOptions = (value: SvelteKitCookieOptionsPlusName) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
 
   load_client_cookie_options = merge(COOKIE_DEFAULTS, value)
@@ -66,7 +66,7 @@ export const getSupabaseServerClientOptions = (): ServerClientOptions => {
   return server_client_options ?? SERVER_DEFAULTS
 }
 
-export const setSupabaseServerClientOptions = (value: ServerClientOptions): void => {
+export const setSupabaseServerClientOptions = (value: MaybeServerClientOptions): void => {
   if (typeof value !== 'object') throw new Error('Server options must be an object')
   
   if (value.client_options || value.cookie_options) server_client_options = merge(SERVER_DEFAULTS, value)

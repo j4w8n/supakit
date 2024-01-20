@@ -1,4 +1,4 @@
-import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, SecureCookieOptionsPlusName, SupakitRegExp } from './types/index.js'
+import type { CookieOptionTypes, KeyStringObjectAny, KeyStringObjectRegExp, SvelteKitCookieOptions, SvelteKitCookieOptionsPlusName, SupakitRegExp } from './types/index.js'
 import { getSupabaseLoadClientCookieOptions } from './config/index.js'
 import { error, json, text, type RequestEvent } from '@sveltejs/kit'
 
@@ -12,10 +12,10 @@ const regexs: KeyStringObjectRegExp = {
 
 export const browserEnv = () => typeof document !== 'undefined'
 
-export const getCookieOptions = (type: CookieOptionTypes, options: SecureCookieOptionsPlusName): {
-  expire_cookie_options?: Omit<SecureCookieOptionsPlusName, 'name'>,
-  remember_me_cookie_options?: Omit<SecureCookieOptionsPlusName, 'name'>,
-  session_cookie_options?: Omit<SecureCookieOptionsPlusName, 'maxAge' | 'expires' | 'name'>
+export const getCookieOptions = (type: CookieOptionTypes, options: SvelteKitCookieOptionsPlusName): {
+  expire_cookie_options?: SvelteKitCookieOptions,
+  remember_me_cookie_options?: SvelteKitCookieOptions,
+  session_cookie_options?: Omit<SvelteKitCookieOptions, 'maxAge' | 'expires'>
 } => {
   const { name, ...rest_cookie_options } = options
   const remember_me_cookie_options = {
@@ -131,11 +131,10 @@ export const csrfCheck = (event: RequestEvent) => {
     (request.method === 'POST' || request.method === 'DELETE' || request.method === 'PUT' || request.method === 'PATCH') && 
     request.headers.get('origin') !== url.origin
   if (forbidden) {
-    const csrf_error = error(403, `Cross-site ${request.method} form submissions are forbidden`);
     if (request.headers.get('accept') === 'application/json') {
-      return json(csrf_error.body, { status: csrf_error.status })
+      return json(`Cross-site ${request.method} form submissions are forbidden`, { status: 403 })
     }
-    return text(csrf_error.body.message, { status: csrf_error.status })
+    return text(`Cross-site ${request.method} form submissions are forbidden`, { status: 403 })
   }
   return false
 }

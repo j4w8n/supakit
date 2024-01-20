@@ -5,7 +5,7 @@ import { csrfCheck, getCookieOptions, isAuthToken, stringToBoolean, testRegEx } 
 import { base } from '$app/paths'
 import { env } from '$env/dynamic/public'
 import { CookieStorage } from "./storage.js"
-import type { SecureCookieOptionsPlusName } from 'types/index.js'
+import type { SvelteKitCookieOptions } from '../types/index.js'
 
 export const endpoints = (async ({ event, resolve }) => {
   const { url, request, cookies } = event
@@ -21,7 +21,7 @@ export const endpoints = (async ({ event, resolve }) => {
     }
   })
 
-  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SecureCookieOptionsPlusName = cookie_options) => {
+  const setCookie = (response: Response, cookie: { name: string, value: string }, options: SvelteKitCookieOptions = cookie_options) => {
     response.headers.append('set-cookie', cookies.serialize(cookie.name, cookie.value, options))
   }
 
@@ -168,8 +168,8 @@ export const endpoints = (async ({ event, resolve }) => {
 
         if (isAuthToken(cookie.name)) {
           setCookie(response, cookie, remember_me ? cookie_options : session_cookie_options)
-          if (data.provider_token && data.provider_token !== '') setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(data.provider_token) }, remember_me ? cookie_options: session_cookie_options)
-          if (data.provider_refresh_token && data.provider_refresh_token !== '') setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(data.provider_refresh_token) }, remember_me ? cookie_options: session_cookie_options)
+          if (data.provider_token && data.provider_token !== '') setCookie(response, { name: 'sb-provider-token', value: JSON.stringify(data.provider_token) }, remember_me ? cookie_options : session_cookie_options)
+          if (data.provider_refresh_token && data.provider_refresh_token !== '') setCookie(response, { name: 'sb-provider-refresh-token', value: JSON.stringify(data.provider_refresh_token) }, remember_me ? cookie_options : session_cookie_options)
         } else if (testRegEx(cookie.name, 'remember_me')) {
           /* add remember me cookie */
           setCookie(response, cookie, remember_me_cookie_options)
