@@ -7,11 +7,6 @@
 		"forceConsistentCasingInFileNames": true,
 		"allowSyntheticDefaultImports": true,
 		"skipLibCheck": true,
-		"strict": true,
-		"baseUrl": "./src/lib/",
-		"paths": {
-			"$lib":["src/lib"],
-			"$lib/*":["src/lib/*"]
-		}
+		"strict": true
 	}
 }
