@@ -33,6 +33,7 @@ export class CookieStorage implements StorageAdapter {
     if (isAuthToken(key)) {
       if (this.event.cookies.get('sb-provider-token')) this.event.cookies.delete('sb-provider-token', expire_cookie_options as SvelteKitCookieOptions)
       if (this.event.cookies.get('sb-provider-refresh-token')) this.event.cookies.delete('sb-provider-refresh-token', expire_cookie_options as SvelteKitCookieOptions)
+      if (this.event.cookies.get('sb-temp-session')) this.event.cookies.delete('sb-temp-session', expire_cookie_options as SvelteKitCookieOptions)
     }
   }
 }
