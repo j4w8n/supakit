@@ -1,6 +1,7 @@
 import { merge, stringToBoolean } from '../utils.js'
-import type { SecureCookieOptionsPlusName, ServerClientOptions } from '../types/index.js'
+import type { SecureCookieOptionsPlusPathAndName, MaybeServerClientOptions, ServerClientOptions } from '../types/index.js'
 import { serialize } from 'cookie'
+import type { SupabaseAuthClientOptions } from '@supabase/supabase-js/dist/module/lib/types.js'
 
 const COOKIE_DEFAULTS = {
   path: '/',
@@ -13,8 +14,8 @@ const SERVER_CLIENT_DEFAULTS = {
     flowType: 'pkce'
   }
 }
-let load_client_cookie_options: SecureCookieOptionsPlusName
-let server_client_options: ServerClientOptions
+let load_client_cookie_options: SecureCookieOptionsPlusPathAndName
+let server_client_options: SupabaseAuthClientOptions
 
 const SERVER_DEFAULTS = {
   cookie_options: COOKIE_DEFAULTS,
@@ -52,11 +53,11 @@ export const rememberMe = () => {
 
 }
 
-export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusName => {
+export const getSupabaseLoadClientCookieOptions = (): SecureCookieOptionsPlusPathAndName => {
   return load_client_cookie_options ?? COOKIE_DEFAULTS
 }
 
-export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusName) => {
+export const setSupabaseLoadClientCookieOptions = (value: SecureCookieOptionsPlusPathAndName) => {
   if (typeof value !== 'object') throw new Error('Cookie options must be an object')
 
   load_client_cookie_options = merge(COOKIE_DEFAULTS, value)
@@ -66,7 +67,7 @@ export const getSupabaseServerClientOptions = (): ServerClientOptions => {
   return server_client_options ?? SERVER_DEFAULTS
 }
 
-export const setSupabaseServerClientOptions = (value: ServerClientOptions): void => {
+export const setSupabaseServerClientOptions = (value: MaybeServerClientOptions): void => {
   if (typeof value !== 'object') throw new Error('Server options must be an object')
   
   if (value.client_options || value.cookie_options) server_client_options = merge(SERVER_DEFAULTS, value)
