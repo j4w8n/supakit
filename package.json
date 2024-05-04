@@ -15,15 +15,15 @@
 		"auth"
 	],
 	"devDependencies": {
-		"@supabase/supabase-js": "^2.39.3",
-		"@sveltejs/adapter-auto": "^3.1.1",
-		"@sveltejs/kit": "^2.4.1",
-		"@sveltejs/package": "^2.2.6",
-		"@sveltejs/vite-plugin-svelte": "^3.0.1",
+		"@supabase/supabase-js": "^2.43.1",
+		"@sveltejs/adapter-auto": "^3.2.0",
+		"@sveltejs/kit": "^2.5.7",
+		"@sveltejs/package": "^2.3.1",
+		"@sveltejs/vite-plugin-svelte": "^3.1.0",
 		"@types/cookie": "^0.6.0",
-		"svelte": "^4.2.9",
-		"typescript": "^5.3.3",
-		"vite": "^5.0.12"
+		"svelte": "^4.2.15",
+		"typescript": "^5.4.5",
+		"vite": "^5.2.11"
 	},
 	"peerDependencies": {
 		"@supabase/supabase-js": "^2.39.3",
@@ -57,6 +57,6 @@
 		"dist"
 	],
 	"dependencies": {
-		"cookie": "^0.5.0"
+		"cookie": "^0.6.0"
 	}
 }
