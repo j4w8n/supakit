@@ -1,4 +1,15 @@
 # Supakit
+I may pivot Supakit into something else in the future, but for now you should consider this package to be deprecated.
+
+- If you'd like to use httpOnly cookies, I have [this repo branch](https://github.com/j4w8n/sveltekit-supabase-ssr/tree/httponly) as a guide.
+- The callback and confirm routes require minimal code.
+- There is still no Supabase-native way to save the provider tokens.
+- The legacy SvelteKit session store is long past its end of life, and continuing to implement would be a rare requirement.
+
+You can reference the `main` branch of my repo, https://github.com/j4w8n/sveltekit-supabase-ssr, for details on implementing Supabase SSR with SvelteKit.
+
+
+
 A Supabase auth helper for SvelteKit.
 
 v2.0.0 is breaking, as it requires the following:
